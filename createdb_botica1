@@ -1,0 +1,101 @@
+-- Active: 1726805132421@@127.0.0.1@3306@botica1
+DROP DATABASE botica1;
+
+create DATABASE botica1;
+
+use botica1;
+
+CREATE TABLE Medicamento (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Nombre VARCHAR(255),
+  Descripcion VARCHAR(255),
+  Precio DECIMAL(10, 2),
+  Stock INT,
+  Tipo VARCHAR(100)
+);
+
+CREATE TABLE Laboratorio (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Nombre VARCHAR(255),
+  Telefono VARCHAR(20),
+  Direccion VARCHAR(255),
+  RUC VARCHAR(20)
+);
+
+CREATE TABLE Entrada (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Fecha_Entrega DATE,
+  Total DECIMAL(10, 2),
+  Laboratorio_ID INT,
+  FOREIGN KEY (Laboratorio_ID) REFERENCES Laboratorio(ID)
+);
+
+CREATE TABLE Detalle_Entrada (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Entrada_ID INT,
+  Medicamento_ID INT,
+  Cantidad INT,
+  FOREIGN KEY (Entrada_ID) REFERENCES Entrada(ID),
+  FOREIGN KEY (Medicamento_ID) REFERENCES Medicamento(ID)
+);
+
+
+CREATE TABLE Movimiento (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Tipo VARCHAR(50),
+  Fecha_movimiento DATE,
+  Entrada_ID INT,
+  Salida_ID INT,
+  FOREIGN KEY (Entrada_ID) REFERENCES Entrada(ID),
+  FOREIGN KEY (Salida_ID) REFERENCES Salida(ID)
+);
+
+CREATE TABLE Detalle_Salida (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Salida_ID INT,
+  Medicamento_ID INT,
+  Cantidad INT,
+  FOREIGN KEY (Salida_ID) REFERENCES Salida(ID),
+  FOREIGN KEY (Medicamento_ID) REFERENCES Medicamento(ID)
+);
+
+CREATE TABLE Salida (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Vendedor_ID INT,
+  Cliente_ID INT,
+  Monto_Total DECIMAL(10, 2),
+  Tipo_de_Pago VARCHAR(50),
+  Fecha_Venta DATE,
+  FOREIGN KEY (Vendedor_ID) REFERENCES Vendedor(ID),
+  FOREIGN KEY (Cliente_ID) REFERENCES Cliente(ID)
+);
+
+CREATE TABLE Vendedor (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Nombre VARCHAR(255),
+  Telefono VARCHAR(20),
+  Estado VARCHAR(50),
+  Rol VARCHAR(50),
+  Contraseña VARCHAR(255)
+);
+
+CREATE TABLE Cliente (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  DNI VARCHAR(20),
+  Nombre VARCHAR(255),
+  Apellido_Pat VARCHAR(255),
+  Apellido_Mat VARCHAR(255)
+);
+
+
+CREATE TABLE History (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Movimiento_ID INT,
+  Tipo_Operacion VARCHAR(50),
+  Tipo VARCHAR(50),
+  Fecha_movimiento DATE,
+  Entrada_ID INT,
+  Salida_ID INT,
+  Fecha_Operacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (Movimiento_ID) REFERENCES Movimiento(ID)
+);
