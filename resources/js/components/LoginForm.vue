@@ -1,18 +1,22 @@
 <template>
-    <div class="container mx-auto p-4">
-        <h2 class="text-2xl font-bold text-center mb-4">Iniciar sesión</h2>
-        <form @submit.prevent="submitLogin" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <div class="mb-4">
-                <label for="Nombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre</label>
-                <input type="text" v-model="Nombre" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+    <div class="flex items-center justify-center min-h-screen bg-gray-100">
+        <div class="container mx-auto p-4">
+            <div class="text-center mb-6">
+                <img src="/images/logo_c.png" alt="Logo" class="mx-auto w-28 h-28">
             </div>
-            <div class="mb-4">
-                <label for="Contraseña" class="block text-gray-700 text-sm font-bold mb-2">Contraseña</label>
-                <input type="password" v-model="Contraseña" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
-            </div>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Iniciar sesión</button>
-        </form>
-        <p v-if="error" class="text-red-500 text-xs italic">{{ error }}</p>
+            <form @submit.prevent="submitLogin" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                <div class="mb-4">
+                    <label for="Nombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre</label>
+                    <input type="text" v-model="Nombre" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+                </div>
+                <div class="mb-4">
+                    <label for="Contraseña" class="block text-gray-700 text-sm font-bold mb-2">Contraseña</label>
+                    <input type="password" v-model="Contraseña" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+                </div>
+                <button type="submit" class="text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline" style="background-color: #00A859;">Iniciar sesión</button>
+            </form>
+            <p v-if="error" class="text-red-500 text-xs italic text-center">{{ error }}</p>
+        </div>
     </div>
 </template>
 
@@ -29,28 +33,24 @@ export default {
     },
     methods: {
         async submitLogin() {
-        try {
-            const response = await axios.post('/vendedor/login', {
-                Nombre: this.Nombre,
-                Contraseña: this.Contraseña, // Asegúrate de que coincida con el nombre en el controlador
-            });
+            try {
+                const response = await axios.post('/vendedor/login', {
+                    Nombre: this.Nombre,
+                    Contraseña: this.Contraseña,
+                });
 
-        // Si la respuesta es exitosa
-            if (response.data.success) {
-                this.error = null; // Limpiar el mensaje de error
-                alert('Inicio de sesión exitoso.');
-            // Aquí puedes redirigir o realizar cualquier otra acción
-            }
-        } catch (error) {
-        // Manejar errores de autenticación
-            if (error.response && error.response.status === 401) {
-                this.error = error.response.data.error; // Mostrar el mensaje de error específico
-            } else {
-                this.error = "Error en la comunicación con el servidor."; // Otro tipo de error
+                if (response.data.success) {
+                    this.error = null;
+                    alert('Inicio de sesión exitoso.');
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    this.error = error.response.data.error;
+                } else {
+                    this.error = "Error en la comunicación con el servidor.";
+                }
             }
         }
-        }
-
     }
 };
 </script>
@@ -58,7 +58,6 @@ export default {
 <style scoped>
 .container {
     max-width: 400px;
-    margin: auto;
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 5px;
