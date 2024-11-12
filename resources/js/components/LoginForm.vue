@@ -44,8 +44,8 @@ export default {
 
                     // Redirigir según el rol del usuario
                     if (response.data.role === 'admin') {
-                        //this.$router.push({ name: 'AdminDashboard' });
-                        alert('Inicio del admin exitoso.');
+                        this.$router.push({ name: 'AdminDashboard' });
+                        //alert('Inicio del admin exitoso.');
                     } else if (response.data.role === 'vendedor') {
                         alert('Inicio de vendedor exitoso.');
                         //this.$router.push({ name: 'VendedorDashboard' });
