@@ -14,13 +14,9 @@ Route::post('/vendedor/login', [VendedorLoginController::class, 'login']);
 
 
 use App\Http\Controllers\VendedorController;
-
+//rutas para vendedores list
 Route::get('/vendedores', [VendedorController::class, 'index']);
 Route::get('/vendedores/{id}', [VendedorController::class, 'show']);
 Route::post('/vendedores', [VendedorController::class, 'store']);
 Route::put('/vendedores/{id}', [VendedorController::class, 'update']);
 Route::delete('/vendedores/{id}', [VendedorController::class, 'destroy']);
-
-Route::get('{any}',function(){
-    return view('app');
-});
