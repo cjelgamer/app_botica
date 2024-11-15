@@ -43,10 +43,10 @@ export default {
                     this.error = null;
 
                     // Redirigir según el rol del usuario
-                    if (response.data.role === 'admin') {
+                    if (response.data.role === 'Admin') {
                         this.$router.push({ name: 'AdminDashboard' });
                         //alert('Inicio del admin exitoso.');
-                    } else if (response.data.role === 'vendedor') {
+                    } else if (response.data.role === 'Vendedor') {
                         alert('Inicio de vendedor exitoso.');
                         //this.$router.push({ name: 'VendedorDashboard' });
                     }
