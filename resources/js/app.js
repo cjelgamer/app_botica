@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginForm from './components/LoginForm.vue';
 import AdminDashboard from './components/AdminDashboard.vue';
 import Vendedores from './components/Vendedores.vue';
+//import Proveedor from './components/Proveedor';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // Define las rutas
