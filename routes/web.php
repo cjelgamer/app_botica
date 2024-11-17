@@ -22,3 +22,5 @@ Route::put('/vendedores/{id}', [VendedorController::class, 'update']);
 Route::delete('/vendedores/{id}', [VendedorController::class, 'destroy']);
 Route::put('/vendedores/{id}/cambiar-contrasena', [VendedorController::class, 'updatePassword']);
 Route::put('/vendedores/{id}/actualizar-estado', [VendedorController::class, 'updateEstado']);
+
+
