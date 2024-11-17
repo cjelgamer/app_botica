@@ -4,7 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginForm from './components/LoginForm.vue';
 import AdminDashboard from './components/AdminDashboard.vue';
 import Vendedores from './components/Vendedores.vue';
-//import Proveedor from './components/Proveedor';
+import Laboratorio from './components/Laboratorio.vue';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // Define las rutas
@@ -16,6 +16,7 @@ const routes = [
         component: AdminDashboard,
         children: [
             { path: 'vendedores', name: 'Vendedores', component: Vendedores },
+            { path: 'laboratorios', name: 'Laboratorios',component: Laboratorio },
         ]
     }
 ];
