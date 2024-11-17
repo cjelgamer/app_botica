@@ -4,7 +4,7 @@
             <img src="/images/logo_c.png" alt="Logo Botica" class="logo">
             <nav class="dashboard-nav">
                 <button @click="$router.push({ path: '/admin-dashboard/vendedores' })">Ver Vendedores</button>
-                <button @click="showMessage('verProveedores')">Ver Proveedores</button>
+                <button @click="$router.push({ path: '/admin-dashboard/laboratorios' })">Ver Laboratorios</button>
                 <button @click="showMessage('descargarReportes')">Descargar Reportes</button>
                 <button @click="showMessage('ajustarStock')">Ajustar Stock</button>
             </nav>
@@ -24,7 +24,7 @@
 
         <main class="dashboard-content">
             <!-- Mostrar esta sección solo si no estamos en la ruta "Vendedores" -->
-            <section class="main-section" v-if="$route.name !== 'Vendedores'">
+            <section class="main-section" v-if="$route.name !== 'Vendedores' && $route.name !== 'Laboratorios'">
                 <div class="action-container">
                     <div class="action-icon" @click="showMessage('publicarMedicamento')">
                         <img src="/images/publish_icon.png" alt="Publicar Medicamento" class="icon-image" />
@@ -40,6 +40,10 @@
 
             <!-- Área principal para cargar el componente de "Vendedores" -->
             <section class="main-section" v-if="$route.name === 'Vendedores'">
+                <router-view></router-view> <!-- Aquí se mostrarán los componentes hijos como Vendedores -->
+            </section>
+            <!-- Área principal para cargar el componente de "Laboratorios" -->
+            <section class="main-section" v-if="$route.name === 'Laboratorios'">
                 <router-view></router-view> <!-- Aquí se mostrarán los componentes hijos como Vendedores -->
             </section>
 
@@ -63,7 +67,11 @@ export default {
         showMessage(action) {
             if (action === 'verVendedores') {
                 this.$router.push({ name: 'Vendedores' });
-            } else {
+            } 
+            else if(action === 'verLaboratorios'){
+                this.$router.push({ name: 'Laboratorios' });
+            }
+            else {
                 const messages = {
                     verProveedores: "Moviendo a pestaña de proveedores",
                     descargarReportes: "Descargando reportes",
