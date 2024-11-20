@@ -22,16 +22,3 @@ Route::put('/vendedores/{id}', [VendedorController::class, 'update']);
 Route::delete('/vendedores/{id}', [VendedorController::class, 'destroy']);
 Route::put('/vendedores/{id}/cambiar-contrasena', [VendedorController::class, 'updatePassword']);
 Route::put('/vendedores/{id}/actualizar-estado', [VendedorController::class, 'updateEstado']);
-//rutas para laboratorios
-use App\Http\Controllers\LaboratorioController;
-
-// Ruta para listar laboratorios
-Route::get('/laboratorios', [LaboratorioController::class, 'index'])->name('laboratorios.index');
-// Ruta para mostrar un laboratorio por ID
-Route::get('/laboratorios/{id}', [LaboratorioController::class, 'show'])->name('laboratorios.show');
-// Ruta para crear un nuevo laboratorio
-Route::post('/laboratorios', [LaboratorioController::class, 'store'])->name('laboratorios.store');
-// Ruta para actualizar un laboratorio existente
-Route::put('/laboratorios/{id}', [LaboratorioController::class, 'update'])->name('laboratorios.update');
-// Ruta para eliminar un laboratorio
-Route::delete('/laboratorios/{id}', [LaboratorioController::class, 'destroy'])->name('laboratorios.destroy');
