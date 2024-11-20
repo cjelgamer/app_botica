@@ -39,7 +39,6 @@ class LaboratorioController extends Controller
             $validated = $request->validate([
                 'Nombre' => 'required|string',
                 'Telefono' => 'required|string',
-                'Estado' => 'required|string',
                 'Direccion' => 'required|string',
                 'RUC' => 'required|string',
                 //'Contraseña' => 'required|string', 
@@ -62,7 +61,6 @@ class LaboratorioController extends Controller
             $validated = $request->validate([
                 'Nombre' => 'required|string',
                 'Telefono' => 'required|string',
-                'Estado' => 'required|string',
                 'Direccion' => 'required|string',
                 'RUC' => 'required|string',
             ]);

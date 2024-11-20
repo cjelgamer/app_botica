@@ -12,6 +12,7 @@
               <th>Teléfono</th>
               <th>Direccion</th>
               <th>RUC</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -20,22 +21,14 @@
               <td>{{ laboratorio.Nombre }}</td>
               <td>{{ laboratorio.Telefono }}</td>
               <td>{{ laboratorio.Direccion }}</td>
+              <td>{{ laboratorio.RUC}}</td>
               <td>
                 <button @click="editLaboratorios(laboratorio)" class="edit-button">
                   <i class="fa fa-pencil"></i>
                 </button>
-                <button @click="openPasswordModal(laboratorio)" class="password-button">
-                  <i class="fa fa-lock"></i>
-                </button>
-                <button @click="deleteLaboratorios(laboratorio.ID)" class="delete-button">
+                <button @click="deleteLaboratorio(laboratorio.ID)" class="delete-button">
                   <i class="fa fa-trash"></i>
                 </button>
-              </td>
-              <td>
-                <label class="switch">
-                  <input type="checkbox" :checked="laboratorio.Estado === 'Activo'" @change="toggleEstado(laboratorio)">
-                  <span class="slider round"></span>
-                </label>
               </td>
             </tr>
           </tbody>
@@ -54,25 +47,18 @@
               <label for="nombre">Nombres</label>
               <input id="nombre" v-model="currentLaboratorio.Nombre" type="text" required />
             </div>
-            <div class="form-group">
-              <label for="rol">Rol</label>
-              <select v-model="currentLaboratorio.Rol" required>
-                <option value="Admin">Admin</option>
-                <option value="Vendedor">Vendedor</option>
-              </select>
-            </div>
             <label for="telefono">Teléfono</label>
             <div class="form-group">
               <input id="telefono" v-model="currentLaboratorio.Telefono" type="text" required />
             </div>
+            <label for="telefono">Direccion</label>
             <div class="form-group">
-              <label for="estado">Estado</label>
-              <select v-model="currentLaboratorio.Estado" required>
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </select>
+              <input id="direccion" v-model="currentLaboratorio.Direccion" type="text" required />
             </div>
-  
+            <label for="telefono">RUC</label>
+            <div class="form-group">
+              <input id="ruc" v-model="currentLaboratorio.RUC" type="text" required />
+            </div>
             <!-- Campo de Contraseña solo para agregar nuevo vendedor 
             <div v-if="!editing" class="form-group password-group">
               <label for="contraseña">Contraseña</label>
@@ -126,16 +112,15 @@
           Nombre: '',
           Telefono: '',
           Direccion: '',
-          Estado: '',
           RUC: '',
           //Contraseña: '' 
         },
         editing: false,
         modalOpen: false,
-        passwordModalOpen: false,
+        /*passwordModalOpen: false,
         selectedVendedorId: null,
         newPassword: '',
-        showPassword: false
+        showPassword: false*/
       };
     },
     methods: {
@@ -150,29 +135,26 @@
       openAddModal() {
         this.modalOpen = true;
         this.editing = false;
-        this.currentLaboratorio = { Nombre: '', Telefono: '',Direccion:'', Estado: '', RUC: '' };
+        this.currentLaboratorio = { Nombre: '', Telefono: '',Direccion:'', RUC: '' };
       },
       editLaboratorios(laboratorio) {
         this.modalOpen = true;
         this.editing = true;
         this.currentLaboratorio = { ...laboratorio };
       },
-      openPasswordModal(laboratorio) {
-        this.passwordModalOpen = true;
-        this.selectedLaboratorioId = laboratorio.ID;
-        //this.newPassword = '';
-      },
-      /*togglePassword() {
-        this.showPassword = !this.showPassword;
-      },*/
       async addLaboratorio() {
-        try {
-          const response = await axios.post('/laboratorios', this.currentLaboratorio);
-          this.laboratorios.push(response.data);
-          this.closeModal();
-        } catch (error) {
-          console.error('Error al agregar laboratorio:', error);
+        if (!this.currentLaboratorio.Nombre || !this.currentLaboratorio.Telefono || !this.currentLaboratorio.Direccion || !this.currentLaboratorio.RUC) {
+        alert("Por favor, completa todos los campos.");
+        return;
         }
+
+      try {
+        const response = await axios.post("/laboratorios", this.currentLaboratorio);
+        this.laboratorios.push(response.data);
+        this.closeModal();
+      } catch (error) {
+        console.error("Error al agregar laboratorio:", error);
+      }
       },
       async updateLaboratorio() {
         try {
@@ -199,7 +181,7 @@
           alert('Por favor, ingresa una nueva contraseña');
         }
       },*/
-      async toggleEstado(laboratorio) {
+      /*async toggleEstado(laboratorio) {
         try {
           const nuevoEstado = laboratorio.Estado === 'Activo' ? 'Inactivo' : 'Activo';
           await axios.put(`/laboratorios/${laboratorio.ID}/actualizar-estado`, { Estado: nuevoEstado });
@@ -207,7 +189,7 @@
         } catch (error) {
           console.error('Error al cambiar el estado:', error);
         }
-      },
+      },*/
       async deleteLaboratorio(id) {
         try {
           await axios.delete(`/laboratorios/${id}`);
@@ -218,14 +200,8 @@
       },
       closeModal() {
         this.modalOpen = false;
-        this.currentLaboratorio = { Nombre: '', Telefono: '',Direccion:'', Estado: '', RUC: '' };
+        this.currentLaboratorio = { Nombre: '', Telefono: '',Direccion:'', RUC: '' };
       },
-      closePasswordModal() {
-        this.passwordModalOpen = false;
-        this.newPassword = '';
-        this.selectedLaboratorioId = null;
-        this.showPassword = false;
-      }
     },
     created() {
       this.fetchLaboratorios();

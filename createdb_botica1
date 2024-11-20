@@ -100,3 +100,4 @@ CREATE TABLE History (
   FOREIGN KEY (Movimiento_ID) REFERENCES Movimiento(ID)
 );
 select * from Laboratorio;
+INSERT INTO Laboratorio VALUES (NULL, 'Lab1', '987654321', 'Jr.Drugs', '20123456789');
