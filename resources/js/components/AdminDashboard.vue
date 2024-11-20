@@ -19,12 +19,13 @@
         <header class="sub-header">
             <button @click="showMessage('realizarVenta')">Realizar Venta</button>
             <button @click="showMessage('registrarCompra')">Registrar Compra</button>
-            <button @click="showMessage('listaMedicamentos')">Lista de Medicamentos</button>
+            <!--<button @click="showMessage('listaMedicamentos')">Lista de Medicamentos</button>-->
+            <button @click="$router.push({ path: '/admin-dashboard/medicamentos' })">Lista de Medicamentos</button>
         </header>
 
         <main class="dashboard-content">
             <!-- Mostrar esta sección solo si no estamos en la ruta "Vendedores" -->
-            <section class="main-section" v-if="$route.name !== 'Vendedores' && $route.name !== 'Laboratorios'">
+            <section class="main-section" v-if="$route.name !== 'Vendedores' && $route.name !== 'Laboratorios'&& $route.name !== 'Medicamento'" >
                 <div class="action-container">
                     <div class="action-icon" @click="showMessage('publicarMedicamento')">
                         <img src="/images/publish_icon.png" alt="Publicar Medicamento" class="icon-image" />
@@ -44,6 +45,11 @@
             </section>
             <!-- Área principal para cargar el componente de "Laboratorios" -->
             <section class="main-section" v-if="$route.name === 'Laboratorios'">
+                <router-view></router-view> <!-- Aquí se mostrarán los componentes hijos como Vendedores -->
+            </section>
+
+                        <!-- Área principal para cargar el componente de "Laboratorios" -->
+            <section class="main-section" v-if="$route.name === 'Medicamento'">
                 <router-view></router-view> <!-- Aquí se mostrarán los componentes hijos como Vendedores -->
             </section>
 
@@ -70,6 +76,9 @@ export default {
             } 
             else if(action === 'verLaboratorios'){
                 this.$router.push({ name: 'Laboratorios' });
+            }   
+            else if (action === 'listaMedicamentos') {
+                this.$router.push({ name: 'Medicamento' }); // Redirige a la ruta de medicamentos
             }
             else {
                 const messages = {
@@ -78,7 +87,6 @@ export default {
                     ajustarStock: "Ajustando stock",
                     realizarVenta: "Moviendo a realizar venta",
                     registrarCompra: "Moviendo a registrar compra",
-                    listaMedicamentos: "Mostrando lista de medicamentos",
                     publicarMedicamento: "Moviendo a publicar medicamento",
                     entrevistasContratos: "Moviendo a entrevistas y contratos",
                 };
