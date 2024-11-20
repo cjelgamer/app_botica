@@ -1,4 +1,4 @@
--- Active: 1731434192460@@127.0.0.1@1111@phpmyadmin
+-- Active: 1726805132421@@127.0.0.1@3306
 DROP DATABASE botica1;
 
 create DATABASE botica1;
@@ -99,3 +99,5 @@ CREATE TABLE History (
   Fecha_Operacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (Movimiento_ID) REFERENCES Movimiento(ID)
 );
+select * from Laboratorio;
+INSERT INTO Laboratorio VALUES (NULL, 'Lab1', '987654321', 'Jr.Drugs', '20123456789');

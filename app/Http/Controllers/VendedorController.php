@@ -58,31 +58,69 @@ class VendedorController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Validación de los datos recibidos
+            // Validación de los datos recibidos sin contraseña
             $validated = $request->validate([
                 'Nombre' => 'required|string',
                 'Telefono' => 'required|string',
                 'Estado' => 'required|string',
                 'Rol' => 'required|string',
-                'Contraseña' => 'required|string', // Contraseña obligatoria para la actualización
             ]);
-
+    
             // Buscar el vendedor por ID
             $vendedor = VendedorSimple::findOrFail($id);
-
-            // Actualizar la contraseña si se proporciona
-            if ($request->filled('Contraseña')) {
-                $vendedor->Contraseña = $validated['Contraseña']; // El mutador setContraseñaAttribute se encargará de encriptar
-            }
-
-            // Actualizar los datos del vendedor
+    
+            // Actualizar los datos validados
             $vendedor->update($validated);
-
+    
             return response()->json($vendedor);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al actualizar vendedor', 'message' => $e->getMessage()], 500);
         }
     }
+    
+
+    public function updatePassword(Request $request, $id)
+    {
+        try {
+            // Validación de la contraseña
+            $request->validate([
+                'Contraseña' => 'required|string'
+            ]);
+    
+            // Encontrar el vendedor
+            $vendedor = VendedorSimple::findOrFail($id);
+    
+            // Actualizar la contraseña usando el mutador en el modelo
+            $vendedor->Contraseña = $request->Contraseña;
+            $vendedor->save();
+    
+            return response()->json(['message' => 'Contraseña actualizada correctamente']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al actualizar la contraseña', 'message' => $e->getMessage()], 500);
+        }
+    }
+    
+
+    public function updateEstado(Request $request, $id)
+{
+    try {
+        // Validar el estado proporcionado
+        $request->validate([
+            'Estado' => 'required|string|in:Activo,Inactivo'
+        ]);
+
+        // Buscar el vendedor por ID
+        $vendedor = VendedorSimple::findOrFail($id);
+
+        // Actualizar el estado del vendedor
+        $vendedor->Estado = $request->Estado;
+        $vendedor->save();
+
+        return response()->json(['message' => 'Estado actualizado correctamente', 'Estado' => $vendedor->Estado]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Error al actualizar el estado', 'message' => $e->getMessage()], 500);
+    }
+}
 
     // Eliminar un vendedor
     public function destroy($id)
@@ -100,3 +138,6 @@ class VendedorController extends Controller
         }
     }
 }
+
+
+
