@@ -179,3 +179,41 @@ SELECT * FROM Medicamento;
 SELECT * FROM Movimiento;
 
 SELECT * from history;
+
+
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*********************************PRUEBAS*****************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Amoxicilina', 'Antibiótico de amplio espectro', 15.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Diclofenaco', 'Antiinflamatorio', 8.50, 0, 'Inyección');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Paracetamol', 'Analgesico y antipirético', 5.00, 0, 'Tabletas');
+
+
+
+
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Laboratorios Andinos', '123456789', 'Av. Las Flores 123, Lima', '1234567');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Farmacéutica del Sur', '987654321', 'Calle Principal 456, Arequipa', '2345678');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('BioMedic Labs', '456123789', 'Jr. Los Pinos 789, Cusco', '3456789');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Salud Vital', '321987654', 'Av. La Salud 101, Trujillo', '4567890');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Laboratorios Santa Fe', '789456123', 'Av. Los Andes 202, Chiclayo', '5678901');
