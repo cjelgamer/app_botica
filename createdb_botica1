@@ -101,3 +101,81 @@ CREATE TABLE History (
 );
 select * from Laboratorio;
 INSERT INTO Laboratorio VALUES (NULL, 'Lab1', '987654321', 'Jr.Drugs', '20123456789');
+
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*********************************DISPARADORES*****************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+
+
+
+CREATE TRIGGER after_insert_movimiento
+AFTER INSERT ON Movimiento
+FOR EACH ROW
+BEGIN
+    INSERT INTO History (Movimiento_ID, Tipo_Operacion, Tipo, Fecha_movimiento, Entrada_ID, Salida_ID)
+    VALUES (NEW.ID, 'INSERT', NEW.Tipo, NEW.Fecha_movimiento, NEW.Entrada_ID, NEW.Salida_ID);
+END;
+
+
+CREATE TRIGGER after_update_movimiento
+AFTER UPDATE ON Movimiento
+FOR EACH ROW
+BEGIN
+    INSERT INTO History (Movimiento_ID, Tipo_Operacion, Tipo, Fecha_movimiento, Entrada_ID, Salida_ID)
+    VALUES (NEW.ID, 'UPDATE', NEW.Tipo, NEW.Fecha_movimiento, NEW.Entrada_ID, NEW.Salida_ID);
+END;
+
+
+CREATE TRIGGER after_delete_movimiento
+AFTER DELETE ON Movimiento
+FOR EACH ROW
+BEGIN
+    INSERT INTO History (Movimiento_ID, Tipo_Operacion, Tipo, Fecha_movimiento, Entrada_ID, Salida_ID)
+    VALUES (OLD.ID, 'DELETE', OLD.Tipo, OLD.Fecha_movimiento, OLD.Entrada_ID, OLD.Salida_ID);
+END;
+
+
+DELIMITER $$
+
+CREATE TRIGGER actualizar_stock_entrada
+AFTER INSERT ON Detalle_Entrada
+FOR EACH ROW
+BEGIN
+    -- Actualizar el stock del medicamento correspondiente
+    UPDATE Medicamento
+    SET Stock = Stock + NEW.Cantidad
+    WHERE ID = NEW.Medicamento_ID;
+
+    -- Insertar el movimiento en la tabla Movimiento
+    INSERT INTO Movimiento (Tipo, Fecha_movimiento, Entrada_ID)
+    VALUES ('Ingreso', CURDATE(), NEW.Entrada_ID);
+END$$
+
+DELIMITER ;
+
+
+
+DROP TRIGGER IF EXISTS actualizar_stock_entrada;
+
+
+
+-- Insertar detalles de una entrada
+INSERT INTO Detalle_Entrada (Entrada_ID, Medicamento_ID, Cantidad)
+VALUES (1, 1, 100);
+
+INSERT INTO Detalle_Entrada (Entrada_ID, Medicamento_ID, Cantidad)
+VALUES (1, 2, 50);
+
+-- Verificar actualizaciones en Medicamento
+SELECT * FROM Medicamento;
+
+-- Verificar inserciones en Movimiento
+SELECT * FROM Movimiento;
+
+SELECT * from history;

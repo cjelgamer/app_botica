@@ -18,14 +18,14 @@
         <!-- Segunda cabecera para los botones adicionales -->
         <header class="sub-header">
             <button @click="showMessage('realizarVenta')">Realizar Venta</button>
-            <button @click="showMessage('registrarCompra')">Registrar Compra</button>
+            <button @click="$router.push({ path: '/admin-dashboard/registrar-compra' })">Registrar Compra</button>
             <!--<button @click="showMessage('listaMedicamentos')">Lista de Medicamentos</button>-->
             <button @click="$router.push({ path: '/admin-dashboard/medicamentos' })">Lista de Medicamentos</button>
         </header>
 
         <main class="dashboard-content">
             <!-- Mostrar esta sección solo si no estamos en la ruta "Vendedores" -->
-            <section class="main-section" v-if="$route.name !== 'Vendedores' && $route.name !== 'Laboratorios'&& $route.name !== 'Medicamento'" >
+            <section class="main-section" v-if="$route.name !== 'Vendedores' && $route.name !== 'Laboratorios'&& $route.name !== 'Medicamento' && $route.name !== 'RegistrarCompra'" >
                 <div class="action-container">
                     <div class="action-icon" @click="showMessage('publicarMedicamento')">
                         <img src="/images/publish_icon.png" alt="Publicar Medicamento" class="icon-image" />
@@ -52,6 +52,12 @@
             <section class="main-section" v-if="$route.name === 'Medicamento'">
                 <router-view></router-view> <!-- Aquí se mostrarán los componentes hijos como Vendedores -->
             </section>
+
+    <!-- Mostrar Registrar Compra -->
+            <section class="main-section" v-else-if="$route.name === 'RegistrarCompra'">
+                <router-view></router-view>
+            </section>
+
 
             <aside class="faq-section">
                 <h3>Preguntas</h3>
@@ -80,13 +86,15 @@ export default {
             else if (action === 'listaMedicamentos') {
                 this.$router.push({ name: 'Medicamento' }); // Redirige a la ruta de medicamentos
             }
+            else if (action === 'registrarCompra') {
+                this.$router.push({ path: '/admin-dashboard/registrar-compra' });
+            }
             else {
                 const messages = {
                     verProveedores: "Moviendo a pestaña de proveedores",
                     descargarReportes: "Descargando reportes",
                     ajustarStock: "Ajustando stock",
                     realizarVenta: "Moviendo a realizar venta",
-                    registrarCompra: "Moviendo a registrar compra",
                     publicarMedicamento: "Moviendo a publicar medicamento",
                     entrevistasContratos: "Moviendo a entrevistas y contratos",
                 };

@@ -47,3 +47,14 @@ Route::get('/medicamentos/{id}', [MedicamentoController::class, 'show']);
 Route::post('/medicamentos', [MedicamentoController::class, 'store']);
 Route::put('/medicamentos/{id}', [MedicamentoController::class, 'update']);
 Route::delete('/medicamentos/{id}', [MedicamentoController::class, 'destroy']);
+
+
+use App\Http\Controllers\EntradaController;
+use App\Http\Controllers\DetalleEntradaController;
+use App\Http\Controllers\CompraController;
+
+// Rutas para Entrada
+Route::post('/entrada', [EntradaController::class, 'guardarEntrada']);
+
+// Rutas para DetalleEntrada
+Route::post('/detalle-entrada', [DetalleEntradaController::class, 'agregarDetalle']);
