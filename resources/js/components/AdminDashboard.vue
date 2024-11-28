@@ -8,7 +8,7 @@
                 <button @click="showMessage('descargarReportes')">Descargar Reportes</button>
                 <button @click="showMessage('ajustarStock')">Ajustar Stock</button>
             </nav>
-            <input type="text" placeholder="Buscar..." class="search-bar" />
+            <!--<input type="text" placeholder="Buscar..." class="search-bar" />-->
             <div class="user-options">
                 <i class="fas fa-bell notification-icon"></i>
                 <i class="fas fa-user-circle user-icon"></i>
