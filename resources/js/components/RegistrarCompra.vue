@@ -67,6 +67,19 @@
           </button>
         </div>
       </form>
+  
+      <!-- Modal para agregar laboratorio (FormularioLaboratorio) -->
+      <FormularioLaboratorio
+        v-if="modalLaboratorioAbierto"
+        :laboratorio="currentLaboratorio"
+        :editing="editingLaboratorio"
+        @add-laboratorio="addLaboratorio"
+        @update-laboratorio="updateLaboratorio"
+        @close="closeModalLaboratorio"
+      />
+  
+      <!-- Botón para agregar un nuevo laboratorio -->
+      <button @click="openModalLaboratorio" class="add-button">Agregar Nuevo Laboratorio</button>
     </div>
   </template>
   
@@ -74,8 +87,12 @@
   import axios from "axios";
   import flatpickr from "flatpickr";
   import "flatpickr/dist/flatpickr.min.css";
+  import FormularioLaboratorio from './FormularioLaboratorio.vue';
   
   export default {
+    components: {
+      FormularioLaboratorio,
+    },
     data() {
       return {
         laboratorios: [],
@@ -88,6 +105,9 @@
         medicamentoSeleccionado: null,
         cantidad: 1,
         detalles: [],
+        modalLaboratorioAbierto: false, // Controlar la apertura del modal de laboratorio
+        currentLaboratorio: {},
+        editingLaboratorio: false,
       };
     },
     methods: {
@@ -107,27 +127,23 @@
   
       // Guardar entrada y avanzar a la sección de detalles
       async enviarEntrada() {
-        // Solo guardar la entrada si aún no se ha guardado
         if (!this.entradaGuardada) {
           const entrada = {
             laboratorio_id: this.laboratorioSeleccionado,
-            fecha_entrega: this.fechaEntrega, // Fecha ya formateada con Flatpickr
+            fecha_entrega: this.fechaEntrega,
             total: this.total,
           };
   
           try {
             const response = await axios.post("/entrada", entrada);
             if (response.data.id) {
-              this.entradaID = response.data.id; // Guardar el ID de la entrada
-              this.entradaGuardada = true; // Cambiar a la sección de detalles
-              console.log("Entrada guardada con ID:", this.entradaID);
+              this.entradaID = response.data.id;
+              this.entradaGuardada = true;
               alert("Entrada registrada con éxito.");
             } else {
-              console.error("No se recibió el ID de la entrada.");
-              alert("Error al registrar la entrada, ID no recibido.");
+              alert("Error al registrar la entrada.");
             }
           } catch (error) {
-            console.error("Error al guardar entrada:", error.response?.data || error.message);
             alert("Error al registrar la entrada.");
           }
         }
@@ -137,7 +153,7 @@
       async agregarDetalle() {
         if (this.medicamentoSeleccionado && this.cantidad && this.entradaID) {
           const detalle = {
-            entrada_id: this.entradaID, // Asegúrate de enviar el entradaID correcto
+            entrada_id: this.entradaID,
             medicamento_id: this.medicamentoSeleccionado,
             cantidad: this.cantidad,
           };
@@ -149,30 +165,23 @@
   
             await axios.post("/detalle-entrada", detalle);
   
-            // Agregar detalle a la lista local
             this.detalles.push({
               nombre: medicamento.Nombre,
               cantidad: this.cantidad,
             });
   
-            // Resetear formulario de detalle
             this.medicamentoSeleccionado = null;
             this.cantidad = 1;
   
-            console.log("Detalle agregado con éxito");
             alert("Detalle agregado con éxito.");
           } catch (error) {
-            console.error("Error al agregar detalle:", error.response?.data || error.message);
             alert("Error al agregar el detalle.");
           }
-        } else {
-          console.log("Faltan datos para agregar el detalle.");
         }
       },
   
       // Finalizar compra
       finalizarCompra() {
-        // Reiniciar los datos relevantes para registrar otra compra
         this.laboratorioSeleccionado = null;
         this.fechaEntrega = "";
         this.total = 0;
@@ -182,8 +191,44 @@
         this.cantidad = 1;
         this.detalles = [];
   
-        // Mostrar un mensaje de éxito
         alert("Compra completada con éxito. Puede registrar otra compra.");
+      },
+  
+      // Abrir modal de laboratorio
+      openModalLaboratorio() {
+        this.modalLaboratorioAbierto = true;
+        this.editingLaboratorio = false;
+        this.currentLaboratorio = {}; // Resetear laboratorio actual
+      },
+  
+      // Cerrar modal de laboratorio
+      closeModalLaboratorio() {
+        this.modalLaboratorioAbierto = false;
+      },
+  
+      // Agregar laboratorio
+      async addLaboratorio(laboratorio) {
+        try {
+          const response = await axios.post("/laboratorios", laboratorio);
+          this.laboratorios.push(response.data);
+          this.closeModalLaboratorio();
+        } catch (error) {
+          alert("Error al agregar laboratorio.");
+        }
+      },
+  
+      // Actualizar laboratorio
+      async updateLaboratorio(laboratorio) {
+        try {
+          const response = await axios.put(`/laboratorios/${laboratorio.ID}`, laboratorio);
+          const index = this.laboratorios.findIndex(l => l.ID === response.data.ID);
+          if (index !== -1) {
+            this.laboratorios.splice(index, 1, response.data);
+          }
+          this.closeModalLaboratorio();
+        } catch (error) {
+          alert("Error al actualizar laboratorio.");
+        }
       },
     },
     mounted() {
@@ -191,10 +236,10 @@
   
       // Configurar Flatpickr para el selector de fecha
       flatpickr("#datepicker", {
-        dateFormat: "Y-m-d", // Formato compatible con el backend
-        minDate: "today", // No se permiten fechas pasadas
+        dateFormat: "Y-m-d",
+        minDate: "today",
         onChange: (selectedDates, dateStr) => {
-          this.fechaEntrega = dateStr; // Actualizar fecha en el modelo
+          this.fechaEntrega = dateStr;
         },
       });
     },
@@ -202,8 +247,9 @@
   </script>
   
   <style scoped>
+  /* Estilos para el formulario y otros componentes */
   .container {
-    max-width: 1000px; /* Ampliar el contenedor */
+    max-width: 1000px;
     margin: 20px auto;
     padding: 20px;
     background-color: #f9f9f9;
@@ -226,11 +272,11 @@
   
   .select-field,
   .input-field {
-    width: 80%; /* Reducir el ancho de los cuadros de entrada */
-    padding: 8px; /* Reducir el padding */
+    width: 80%;
+    padding: 8px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 14px; /* Reducir el tamaño de la fuente */
+    font-size: 14px;
   }
   
   .submit-button,
@@ -238,7 +284,7 @@
   .finalizar-button {
     background-color: #4caf50;
     color: white;
-    padding: 10px 15px; /* Reducir el padding de los botones */
+    padding: 10px 15px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -249,7 +295,7 @@
   .submit-button:hover,
   .add-button:hover,
   .finalizar-button:hover {
-    background-color: #4caf50;
+    background-color: #45a049;
   }
   
   .finalizar-button {
