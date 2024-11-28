@@ -56,3 +56,30 @@ use App\Http\Controllers\CompraController;
 Route::post('/entrada', [EntradaController::class, 'guardarEntrada']);
 // Rutas para DetalleEntrada
 Route::post('/detalle-entrada', [DetalleEntradaController::class, 'agregarDetalle']);
+
+// routes/web.php
+
+use App\Models\Medicamento;
+use Illuminate\Http\Request;
+
+// Ruta para obtener los medicamentos (para búsqueda)
+Route::get('/medicamentos', function (Request $request) {
+    $searchQuery = $request->input('search');
+    $medicamentos = Medicamento::where('nombre', 'like', '%' . $searchQuery . '%')->get();
+    return response()->json($medicamentos);
+});
+
+// Ruta para aceptar una venta (simulando la lógica de procesamiento de venta)
+Route::post('/venta', function (Request $request) {
+    $data = $request->all();
+    // Lógica para procesar la venta
+    return response()->json(['status' => 'success', 'message' => 'Venta aceptada']);
+});
+
+// Ruta para cancelar la venta
+Route::post('/cancelar-venta', function () {
+    // Lógica para cancelar la venta
+    return response()->json(['status' => 'success', 'message' => 'Venta cancelada']);
+});
+
+

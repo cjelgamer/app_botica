@@ -8,6 +8,7 @@ import Laboratorio from './components/Laboratorio.vue';
 import Medicamento from './components/Medicamento.vue';
 import RegistrarCompra from './components/RegistrarCompra.vue';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import RegistrarVenta from './components/Registrarventa.vue';
 
 // Define las rutas
 const routes = [
@@ -21,6 +22,7 @@ const routes = [
             { path: 'laboratorios', name: 'Laboratorios',component: Laboratorio },
             { path: 'medicamentos', name: 'Medicamento', component: Medicamento },
             { path: 'registrar-compra', name: 'RegistrarCompra', component: RegistrarCompra },
+            { path: 'registrar-venta', name: 'RegistrarVenta', component: RegistrarVenta },
         ]
     }
 ];

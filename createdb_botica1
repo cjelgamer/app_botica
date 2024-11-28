@@ -161,7 +161,7 @@ DELIMITER ;
 
 
 
-DROP TRIGGER IF EXISTS actualizar_stock_entrada;
+--DROP TRIGGER IF EXISTS actualizar_stock_entrada;
 
 
 
