@@ -1,4 +1,4 @@
--- Active: 1727716313186@@127.0.0.1@3306@botica1
+-- Active: 1726805132421@@127.0.0.1@3306@botica1
 DROP DATABASE botica1;
 
 create DATABASE botica1;
@@ -158,6 +158,27 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+
+
+DELIMITER $$
+
+CREATE TRIGGER actualizar_stock_salida
+AFTER INSERT ON Detalle_Salida
+FOR EACH ROW
+BEGIN
+    -- Actualizar el stock del medicamento correspondiente
+    UPDATE Medicamento
+    SET Stock = Stock - NEW.Cantidad
+    WHERE ID = NEW.Medicamento_ID;
+
+    -- Insertar el movimiento en la tabla Movimiento
+    INSERT INTO Movimiento (Tipo, Fecha_movimiento, Salida_ID)
+    VALUES ('Salida', CURDATE(), NEW.Salida_ID);
+END$$
+
+DELIMITER ;
+
 
 
 
