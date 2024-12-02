@@ -231,39 +231,46 @@ export default {
 },
 
 
-    // Agregar detalle de medicamento
-      // Agregar detalle de medicamento
-      async agregarDetalle() {
-    if (this.medicamentoSeleccionado && this.cantidad && this.entradaID) {
-      const detalle = {
-        entrada_id: this.entradaID,
-        medicamento_id: this.medicamentoSeleccionado,
+async agregarDetalle() {
+  if (this.medicamentoSeleccionado && this.cantidad && this.entradaID) {
+    const detalle = {
+      entrada_id: this.entradaID,
+      medicamento_id: this.medicamentoSeleccionado,
+      cantidad: this.cantidad,
+    };
+
+    try {
+      // Hacer el POST para agregar el detalle
+      const response = await axios.post("/detalle-entrada", detalle);
+      
+      // Si el POST es exitoso, actualizamos los detalles en la vista
+      const medicamento = this.medicamentos.find(
+        (m) => m.ID === this.medicamentoSeleccionado
+      );
+
+      this.detalles.push({
+        nombre: medicamento.Nombre,
         cantidad: this.cantidad,
-      };
+      });
 
-      try {
-        const medicamento = this.medicamentos.find(
-          (m) => m.ID === this.medicamentoSeleccionado
-        );
+      // Limpiar los campos después de agregar el detalle
+      this.medicamentoSeleccionado = null;
+      this.cantidad = 1;
 
-        await axios.post("/detalle-entrada", detalle);
+      alert("Detalle agregado con éxito.");
 
-        this.detalles.push({
-          nombre: medicamento.Nombre,
-          cantidad: this.cantidad,
-        });
-
-        this.medicamentoSeleccionado = null;
-        this.cantidad = 1;
-
-        alert("Detalle agregado con éxito.");
-      } catch (error) {
-        alert("Error al agregar el detalle.");
+      // Si ya hay detalles, proceder a finalizar la compra
+      if (this.detalles.length > 0) {
+        await this.finalizarCompra();
       }
-    } else {
-      alert("Por favor, seleccione un medicamento y cantidad.");
+    } catch (error) {
+      alert("Hubo un problema al agregar el detalle.");
+      console.error(error);
     }
-  },
+  } else {
+    alert("Por favor, seleccione un medicamento y cantidad.");
+  }
+},
 
 
 // Finalizar compra
