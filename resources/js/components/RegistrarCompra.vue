@@ -19,6 +19,7 @@
             @keydown.enter="enviarEntrada"
           />
           <button
+            v-if="!laboratorioSeleccionado"
             type="button"
             class="add-button"
             @click="openModalLaboratorio"
@@ -117,28 +118,15 @@
           />
         </div>
 
-        <button type="button" class="add-button" @click="agregarDetalle">
-          Agregar Detalle
-        </button>
-
-        <!-- Lista de detalles agregados -->
-        <div v-if="detalles.length">
-          <h4>Detalles Agregados</h4>
-          <ul>
-            <li v-for="(detalle, index) in detalles" :key="index">
-              {{ detalle.nombre }} - Cantidad: {{ detalle.cantidad }}
-            </li>
-          </ul>
-        </div>
-
-        <!-- Botón para finalizar compra -->
+        <!-- Botón único para agregar detalle o finalizar compra -->
         <button
           type="button"
-          @click="finalizarCompra"
-          class="submit-button finalizar-button"
+          @click="manejarCompra"
+          class="submit-button"
         >
-          Finalizar Compra
+          {{ detalles.length === 0 ? 'Agregar Detalle' : 'Finalizar Compra' }}
         </button>
+
       </div>
     </form>
 
@@ -153,6 +141,7 @@
     />
   </div>
 </template>
+
 
 
 <script>
@@ -230,50 +219,72 @@ export default {
       }
     },
 
+
+    async manejarCompra() {
+  if (this.detalles.length === 0) {
+    // Si no hay detalles, agregar el detalle
+    await this.agregarDetalle();
+  }
+
+  // Finalizar compra después de agregar el detalle (o si ya había detalles)
+  await this.finalizarCompra();
+},
+
+
     // Agregar detalle de medicamento
-    async agregarDetalle() {
-      if (this.medicamentoSeleccionado && this.cantidad && this.entradaID) {
-        const detalle = {
-          entrada_id: this.entradaID,
-          medicamento_id: this.medicamentoSeleccionado,
+      // Agregar detalle de medicamento
+      async agregarDetalle() {
+    if (this.medicamentoSeleccionado && this.cantidad && this.entradaID) {
+      const detalle = {
+        entrada_id: this.entradaID,
+        medicamento_id: this.medicamentoSeleccionado,
+        cantidad: this.cantidad,
+      };
+
+      try {
+        const medicamento = this.medicamentos.find(
+          (m) => m.ID === this.medicamentoSeleccionado
+        );
+
+        await axios.post("/detalle-entrada", detalle);
+
+        this.detalles.push({
+          nombre: medicamento.Nombre,
           cantidad: this.cantidad,
-        };
+        });
 
-        try {
-          const medicamento = this.medicamentos.find(
-            (m) => m.ID === this.medicamentoSeleccionado
-          );
+        this.medicamentoSeleccionado = null;
+        this.cantidad = 1;
 
-          await axios.post("/detalle-entrada", detalle);
-
-          this.detalles.push({
-            nombre: medicamento.Nombre,
-            cantidad: this.cantidad,
-          });
-
-          this.medicamentoSeleccionado = null;
-          this.cantidad = 1;
-
-          alert("Detalle agregado con éxito.");
-        } catch (error) {
-          alert("Error al agregar el detalle.");
-        }
+        alert("Detalle agregado con éxito.");
+      } catch (error) {
+        alert("Error al agregar el detalle.");
       }
-    },
+    } else {
+      alert("Por favor, seleccione un medicamento y cantidad.");
+    }
+  },
 
-    // Finalizar compra
-    finalizarCompra() {
-      this.laboratorioSeleccionado = null;
-      this.fechaEntrega = "";
-      this.total = 0;
-      this.entradaID = null;
-      this.entradaGuardada = false;
-      this.medicamentoSeleccionado = null;
-      this.cantidad = 1;
-      this.detalles = [];
 
-      alert("Compra completada con éxito. Puede registrar otra compra.");
-    },
+// Finalizar compra
+async finalizarCompra() {
+  try {
+    // Limpiar el formulario después de finalizar
+    this.laboratorioSeleccionado = null;
+    this.fechaEntrega = "";
+    this.total = 0;
+    this.entradaID = null;
+    this.entradaGuardada = false;
+    this.medicamentoSeleccionado = null;
+    this.cantidad = 1;
+    this.detalles = [];
+
+    alert("Compra completada con éxito. Puede registrar otra compra.");
+  } catch (error) {
+    alert("Hubo un problema al finalizar la compra.");
+  }
+},
+
 
     // Seleccionar laboratorio de la lista
     seleccionarLaboratorio(laboratorio) {
