@@ -72,8 +72,8 @@
 
 <style scoped>
 .dashboard-perfil-container {
-  height: 100%;
-  overflow-y: auto;
+  /*height: 100%;
+  /*overflow-y: auto;*/
   padding: 1rem;
 }
 
