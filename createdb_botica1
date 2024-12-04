@@ -99,6 +99,15 @@ CREATE TABLE History (
   Fecha_Operacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (Movimiento_ID) REFERENCES Movimiento(ID)
 );
+
+
+CREATE TABLE Caja (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Fecha DATE,
+  Saldo_Inicial DECIMAL(10, 2),
+  Saldo_Final DECIMAL(10, 2)
+);
+
 select * from Laboratorio;
 INSERT INTO Laboratorio VALUES (NULL, 'Lab1', '987654321', 'Jr.Drugs', '20123456789');
 
@@ -238,3 +247,36 @@ VALUES ('Salud Vital', '321987654', 'Av. La Salud 101, Trujillo', '4567890');
 
 INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
 VALUES ('Laboratorios Santa Fe', '789456123', 'Av. Los Andes 202, Chiclayo', '5678901');
+
+
+##################################################################################
+##################################################################################
+###########################Disparadores###########################################
+##################################################################################
+##################################################################################
+
+DELIMITER //
+
+CREATE TRIGGER tr_ActualizarCaja AFTER INSERT ON Salida
+FOR EACH ROW
+BEGIN
+  DECLARE saldo_inicial DECIMAL(10, 2);
+  DECLARE fecha_actual DATE;
+  
+  SET fecha_actual = CURDATE();
+  
+  -- Verificar si ya existe un registro para la fecha actual en la tabla Caja
+  SELECT Saldo_Final INTO saldo_inicial FROM Caja WHERE Fecha = fecha_actual;
+  
+  IF saldo_inicial IS NULL THEN
+    -- Si no existe un registro para la fecha actual, insertar uno nuevo con el saldo inicial y final
+    INSERT INTO Caja (Fecha, Saldo_Inicial, Saldo_Final)
+    VALUES (fecha_actual, NEW.Monto_Total, NEW.Monto_Total);
+  ELSE
+    -- Si ya existe un registro para la fecha actual, actualizar el saldo final sumando el monto de la nueva venta
+    UPDATE Caja SET Saldo_Final = Saldo_Final + NEW.Monto_Total
+    WHERE Fecha = fecha_actual;
+  END IF;
+END //
+
+DELIMITER ;
