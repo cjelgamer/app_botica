@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard">
         <header class="dashboard-header">
-            <img src="/images/logo_c.png" alt="Logo Botica" class="logo">
+            <img src="/images/logo_c.png" alt="Logo Botica" class="logo" @click="$router.push('/admin-dashboard')" style="cursor: pointer;">
             <nav class="dashboard-nav">
                 <button @click="$router.push({ path: '/admin-dashboard/vendedores' })">Ver Vendedores</button>
                 <button @click="$router.push({ path: '/admin-dashboard/laboratorios' })">Ver Laboratorios</button>

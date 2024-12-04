@@ -108,7 +108,7 @@ CREATE TABLE Caja (
   Saldo_Final DECIMAL(10, 2)
 );
 
-select * from Laboratorio;
+select * from Laboratorio;  
 INSERT INTO Laboratorio VALUES (NULL, 'Lab1', '987654321', 'Jr.Drugs', '20123456789');
 
 
