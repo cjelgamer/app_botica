@@ -11,7 +11,7 @@
             <!--<input type="text" placeholder="Buscar..." class="search-bar" />-->
             <div class="user-options">
                 <i class="fas fa-bell notification-icon"></i>
-                <i class="fas fa-user-circle user-icon"></i>
+                <i class="fas fa-user-circle user-icon" @click="$router.push({ path: '/admin-dashboard/perfil' })"></i>
             </div>
         </header>
 
@@ -25,7 +25,12 @@
 
         <main class="dashboard-content">
             <!-- Mostrar esta sección solo si no estamos en la ruta "Vendedores" -->
-            <section class="main-section" v-if="$route.name !== 'Vendedores' && $route.name !== 'Laboratorios'&& $route.name !== 'Medicamento' && $route.name !== 'RegistrarCompra'  && $route.name !== 'RegistrarVenta'" >
+            <section class="main-section" v-if="$route.name !== 'Vendedores' && 
+                                 $route.name !== 'Laboratorios' && 
+                                 $route.name !== 'Medicamento' && 
+                                 $route.name !== 'RegistrarCompra' && 
+                                 $route.name !== 'RegistrarVenta' && 
+                                 $route.name !== 'PerfilVendedor'" >
                 <div class="action-container">
                     <div class="action-icon" @click="openModal('publicarMedicamento')">
                         <img src="/images/publish_icon.png" alt="Publicar Medicamento" class="icon-image" />
@@ -59,6 +64,10 @@
             </section>
     <!-- Mostrar Registrar Venta  -->
            <section class="main-section" v-else-if="$route.name === 'RegistrarVenta'">
+                <router-view></router-view>
+            </section>
+
+            <section class="main-section" v-if="$route.name === 'PerfilVendedor'">
                 <router-view></router-view>
             </section>
 

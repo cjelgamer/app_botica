@@ -1,85 +1,82 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Auth\VendedorLoginController;
+use App\Http\Controllers\VendedorController;
+use App\Http\Controllers\LaboratorioController;
+use App\Http\Controllers\MedicamentoController;
+use App\Http\Controllers\EntradaController;
+use App\Http\Controllers\DetalleEntradaController;
+use App\Http\Controllers\CompraController;
+use App\Models\Medicamento;
 
+// Rutas públicas
 Route::get('/', function () {
-    return view('welcome');
+  return view('welcome');
 });
 
-use App\Http\Controllers\Auth\VendedorLoginController;
-
-
+// Rutas de autenticación (sin middleware)
 Route::get('/vendedor/login', [VendedorLoginController::class, 'showLoginForm'])->name('vendedor.login');
 Route::post('/vendedor/login', [VendedorLoginController::class, 'login']);
 
 
-use App\Http\Controllers\VendedorController;
-//rutas para vendedores list
-Route::get('/vendedores', [VendedorController::class, 'index']);
-Route::get('/vendedores/{id}', [VendedorController::class, 'show']);
-Route::post('/vendedores', [VendedorController::class, 'store']);
-Route::put('/vendedores/{id}', [VendedorController::class, 'update']);
-Route::delete('/vendedores/{id}', [VendedorController::class, 'destroy']);
-Route::put('/vendedores/{id}/cambiar-contrasena', [VendedorController::class, 'updatePassword']);
-Route::put('/vendedores/{id}/actualizar-estado', [VendedorController::class, 'updateEstado']);
+// Rutas protegidas
+Route::group(['middleware' => ['web']], function () {
+   // Logout y perfil
+   Route::post('/vendedor/logout', [VendedorLoginController::class, 'logout'])->name('vendedor.logout');
+   Route::get('/vendedor/perfil', [VendedorLoginController::class, 'getPerfil']);
 
+   // Dashboard
+   Route::get('/admin-dashboard', function () {
+       return view('admin-dashboard');
+   })->name('admin.dashboard');
 
-//rutas para laboratorios
-use App\Http\Controllers\LaboratorioController;
-
-// Ruta para listar laboratorios
-Route::get('/laboratorios', [LaboratorioController::class, 'index'])->name('laboratorios.index');
-// Ruta para mostrar un laboratorio por ID
-Route::get('/laboratorios/{id}', [LaboratorioController::class, 'show'])->name('laboratorios.show');
-// Ruta para crear un nuevo laboratorio
-Route::post('/laboratorios', [LaboratorioController::class, 'store'])->name('laboratorios.store');
-// Ruta para actualizar un laboratorio existente
-Route::put('/laboratorios/{id}', [LaboratorioController::class, 'update'])->name('laboratorios.update');
-// Ruta para eliminar un laboratorio
-Route::delete('/laboratorios/{id}', [LaboratorioController::class, 'destroy'])->name('laboratorios.destroy');
+   
+   // Rutas para vendedores
+   Route::get('/vendedores', [VendedorController::class, 'index']);
+   Route::get('/vendedores/{id}', [VendedorController::class, 'show']);
+   Route::post('/vendedores', [VendedorController::class, 'store']);
+   Route::put('/vendedores/{id}', [VendedorController::class, 'update']);
+   Route::delete('/vendedores/{id}', [VendedorController::class, 'destroy']);
+   Route::put('/vendedores/{id}/cambiar-contrasena', [VendedorController::class, 'updatePassword']);
+   Route::put('/vendedores/{id}/actualizar-estado', [VendedorController::class, 'updateEstado']);
 
 
 
-use App\Http\Controllers\MedicamentoController;
 
-Route::get('/medicamentos', [MedicamentoController::class, 'index']);
-Route::get('/medicamentos/{id}', [MedicamentoController::class, 'show']);
-Route::post('/medicamentos', [MedicamentoController::class, 'store']);
-Route::put('/medicamentos/{id}', [MedicamentoController::class, 'update']);
-Route::delete('/medicamentos/{id}', [MedicamentoController::class, 'destroy']);
+   // Rutas para laboratorios
+   Route::get('/laboratorios', [LaboratorioController::class, 'index'])->name('laboratorios.index');
+   Route::get('/laboratorios/{id}', [LaboratorioController::class, 'show'])->name('laboratorios.show');
+   Route::post('/laboratorios', [LaboratorioController::class, 'store'])->name('laboratorios.store');
+   Route::put('/laboratorios/{id}', [LaboratorioController::class, 'update'])->name('laboratorios.update');
+   Route::delete('/laboratorios/{id}', [LaboratorioController::class, 'destroy'])->name('laboratorios.destroy');
 
+   // Rutas para medicamentos
+   Route::get('/medicamentos', [MedicamentoController::class, 'index']);
+   Route::get('/medicamentos/{id}', [MedicamentoController::class, 'show']);
+   Route::post('/medicamentos', [MedicamentoController::class, 'store']);
+   Route::put('/medicamentos/{id}', [MedicamentoController::class, 'update']);
+   Route::delete('/medicamentos/{id}', [MedicamentoController::class, 'destroy']);
 
-use App\Http\Controllers\EntradaController;
-use App\Http\Controllers\DetalleEntradaController;
-use App\Http\Controllers\CompraController;
+   // Rutas para entradas y detalles
+   Route::post('/entrada', [EntradaController::class, 'guardarEntrada']);
+   Route::post('/detalle-entrada', [DetalleEntradaController::class, 'agregarDetalle']);
 
-Route::post('/entrada', [EntradaController::class, 'guardarEntrada']);
-// Rutas para DetalleEntrada
-Route::post('/detalle-entrada', [DetalleEntradaController::class, 'agregarDetalle']);
+   // Rutas para búsqueda de medicamentos
+   Route::get('/medicamentos-buscar', function (Request $request) {
+       $searchQuery = $request->input('search');
+       $medicamentos = Medicamento::where('nombre', 'like', '%' . $searchQuery . '%')->get();
+       return response()->json($medicamentos);
+   });
 
-// routes/web.php
+   // Rutas para ventas
+   Route::post('/venta', function (Request $request) {
+       $data = $request->all();
+       return response()->json(['status' => 'success', 'message' => 'Venta aceptada']);
+   });
 
-use App\Models\Medicamento;
-use Illuminate\Http\Request;
-
-// Ruta para obtener los medicamentos (para búsqueda)
-Route::get('/medicamentos', function (Request $request) {
-    $searchQuery = $request->input('search');
-    $medicamentos = Medicamento::where('nombre', 'like', '%' . $searchQuery . '%')->get();
-    return response()->json($medicamentos);
+   Route::post('/cancelar-venta', function () {
+       return response()->json(['status' => 'success', 'message' => 'Venta cancelada']);
+   });
 });
-
-// Ruta para aceptar una venta (simulando la lógica de procesamiento de venta)
-Route::post('/venta', function (Request $request) {
-    $data = $request->all();
-    // Lógica para procesar la venta
-    return response()->json(['status' => 'success', 'message' => 'Venta aceptada']);
-});
-
-// Ruta para cancelar la venta
-Route::post('/cancelar-venta', function () {
-    // Lógica para cancelar la venta
-    return response()->json(['status' => 'success', 'message' => 'Venta cancelada']);
-});
-
-

@@ -35,14 +35,23 @@ return [
     | Supported: "session"
     |
     */
-
 'guards' => [
-    'vendedor' => [  // Cambié 'vendedores' a 'vendedor'
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'vendedor',  // Apunta al provider correcto
+    ],
+    'vendedor' => [
         'driver' => 'session',
         'provider' => 'vendedor',
     ],
 ],
 
+'providers' => [
+    'vendedor' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\Vendedor::class,
+    ],
+],
 
     /*
     |--------------------------------------------------------------------------
@@ -61,12 +70,6 @@ return [
     |
     */
 
-'providers' => [
-    'vendedor' => [ // Cambié 'vendedores' a 'vendedor'
-        'driver' => 'eloquent',
-        'model' => App\Models\Vendedor::class, // Asegúrate de que el modelo esté apuntando al correcto
-    ],
-],
 
 
     /*

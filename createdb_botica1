@@ -108,6 +108,11 @@ CREATE TABLE Caja (
   Saldo_Final DECIMAL(10, 2)
 );
 
+#modificaciones para tabla caja :
+ALTER TABLE Caja
+ADD COLUMN Vendedor_ID INT,
+ADD FOREIGN KEY (Vendedor_ID) REFERENCES Vendedor(ID);
+
 select * from Laboratorio;  
 INSERT INTO Laboratorio VALUES (NULL, 'Lab1', '987654321', 'Jr.Drugs', '20123456789');
 
@@ -265,17 +270,20 @@ BEGIN
   
   SET fecha_actual = CURDATE();
   
-  -- Verificar si ya existe un registro para la fecha actual en la tabla Caja
-  SELECT Saldo_Final INTO saldo_inicial FROM Caja WHERE Fecha = fecha_actual;
+  -- Verificar si ya existe un registro para la fecha actual y el vendedor específico
+  SELECT Saldo_Final INTO saldo_inicial 
+  FROM Caja 
+  WHERE Fecha = fecha_actual AND Vendedor_ID = NEW.Vendedor_ID;
   
   IF saldo_inicial IS NULL THEN
-    -- Si no existe un registro para la fecha actual, insertar uno nuevo con el saldo inicial y final
-    INSERT INTO Caja (Fecha, Saldo_Inicial, Saldo_Final)
-    VALUES (fecha_actual, NEW.Monto_Total, NEW.Monto_Total);
+    -- Si no existe un registro, insertar uno nuevo
+    INSERT INTO Caja (Fecha, Saldo_Inicial, Saldo_Final, Vendedor_ID)
+    VALUES (fecha_actual, NEW.Monto_Total, NEW.Monto_Total, NEW.Vendedor_ID);
   ELSE
-    -- Si ya existe un registro para la fecha actual, actualizar el saldo final sumando el monto de la nueva venta
-    UPDATE Caja SET Saldo_Final = Saldo_Final + NEW.Monto_Total
-    WHERE Fecha = fecha_actual;
+    -- Si existe, actualizar el saldo final
+    UPDATE Caja 
+    SET Saldo_Final = Saldo_Final + NEW.Monto_Total
+    WHERE Fecha = fecha_actual AND Vendedor_ID = NEW.Vendedor_ID;
   END IF;
 END //
 

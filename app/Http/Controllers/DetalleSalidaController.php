@@ -32,4 +32,5 @@ class DetalleSalida extends Model
     {
         return $this->belongsTo(Medicamento::class, 'medicamento_id'); // Relación con el medicamento
     }
+
 }

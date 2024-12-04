@@ -7,6 +7,7 @@ import Vendedores from './components/Vendedores.vue';
 import Laboratorio from './components/Laboratorio.vue';
 import Medicamento from './components/Medicamento.vue';
 import RegistrarCompra from './components/RegistrarCompra.vue';
+import PerfilVendedor from './components/PerfilVendedor.vue';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import RegistrarVenta from './components/Registrarventa.vue';
 
@@ -23,6 +24,7 @@ const routes = [
             { path: 'medicamentos', name: 'Medicamento', component: Medicamento },
             { path: 'registrar-compra', name: 'RegistrarCompra', component: RegistrarCompra },
             { path: 'registrar-venta', name: 'RegistrarVenta', component: RegistrarVenta },
+            { path: 'perfil', name: 'PerfilVendedor', component: PerfilVendedor } // Nueva ruta para el perfil
         ]
     }
 ];

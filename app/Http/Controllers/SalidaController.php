@@ -22,4 +22,5 @@ class SalidaController extends Controller
         }
         return $salida;
     }
+
 }
