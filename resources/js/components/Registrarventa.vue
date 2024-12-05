@@ -1,14 +1,41 @@
 <template>
   <div class="form-container">
-    <!-- Búsqueda de Medicamento -->
     <div class="search-container">
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Buscar Medicamento"
-        @input="searchMedicamentos"
-        class="search-input"
-      />
+    <button class="search-button" @click="openModal">
+      Buscar Medicamento
+    </button>
+
+    <div v-if="isModalVisible" class="modal-overlay" @click.self="closeModal">
+    <div class="modal-content">
+    <h2>Buscar Medicamento</h2>
+    <p>Este es el contenido del modal.</p>
+    <button class="close-button" @click="closeModal">Cerrar</button>
+    </div>
+    </div>
+
+    </div>
+
+    <!-- Modal -->
+    <div v-if="isModalVisible" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-content">
+        <input
+          type="text"
+          v-model="searchQuery"
+          @input="filterMedicamentos"
+          placeholder="Buscar medicamento..."
+          class="search-input"
+        />
+        <ul class="medicamentos-list">
+          <li
+            v-for="medicamento in filteredMedicamentos"
+            :key="medicamento.id"
+            @click="addMedicamento(medicamento)"
+          >
+            {{ medicamento.Nombre }}
+          </li>
+        </ul>
+        <button class="close-button" @click="closeModal">Cerrar</button>
+      </div>
     </div>
 
     <!-- Medicamentos -->
@@ -78,14 +105,26 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      medicamentos: [], // Lista de medicamentos
-      searchQuery: "", // Término de búsqueda
+      medicamentos: [], // Lista de medicamentos seleccionados
       nombreCliente: "", // Nombre del cliente
-      apellidoCliente: "", // Apellido del cliente
+      apellidoCliente: "", // Campo para capturar ambos apellidos juntos
+      apellidoPaterno: "", // Apellido paterno del cliente
+      apellidoMaterno: "", // Apellido materno del cliente
       dniCliente: "", // DNI del cliente
+      allMedicamentos: [], // Todos los medicamentos disponibles para buscar
+      filteredMedicamentos: [], // Medicamentos filtrados en la búsqueda
+      searchQuery: "", // Texto de búsqueda
+      isModalVisible: false, // Estado del modal 
     };
   },
   methods: {
+    openModal() {
+      this.isModalVisible = true; // Muestra el modal
+      this.fetchAllMedicamentos(); // Cargar medicamentos cuando se abre el modal
+    },
+    closeModal() {
+      this.isModalVisible = false; // Oculta el modal
+    },
     // Función para buscar medicamentos
     async searchMedicamentos() {
       try {
@@ -104,6 +143,27 @@ export default {
         console.error('Error al buscar medicamentos:', error);
       }
     },
+    /******/
+    async fetchAllMedicamentos() {
+      try {
+        const response = await axios.get("/medicamentos");
+        this.allMedicamentos = response.data;
+        this.filteredMedicamentos = this.allMedicamentos;
+      } catch (error) {
+        console.error("Error al obtener medicamentos:", error);
+      }
+    },
+    filterMedicamentos() {
+      this.filteredMedicamentos = this.allMedicamentos.filter((medicamento) =>
+        medicamento.Nombre.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
+    addMedicamento(medicamento) {
+      if (!this.medicamentos.find((m) => m.id === medicamento.id)) {
+        this.medicamentos.push({ ...medicamento, cantidad: 1 });
+      }
+      this.closeModal();
+    },
 
     // Función para actualizar la cantidad de un medicamento
     updateCantidad(medicamento, delta) {
@@ -116,24 +176,52 @@ export default {
     updateTotal() {
       // Se puede agregar aquí lógica para recalcular el total de la venta si es necesario.
     },
-
-    // Función para aceptar la venta
-    async aceptarVenta() {
-      try {
-        const response = await axios.post('/venta', {
-          medicamentos: this.medicamentos,
-          cliente: {
-            nombre: this.nombreCliente,
-            apellido: this.apellidoCliente,
-            dni: this.dniCliente
-          }
-        });
-        alert(response.data.message);
-        this.cancelarVenta(); // Limpiar después de aceptar la venta
-      } catch (error) {
-        console.error('Error al aceptar la venta:', error);
-      }
+    separarApellidos() {
+    if (this.apellidoCliente.trim() !== "") {
+      const apellidos = this.apellidoCliente.trim().split(" ");
+      this.apellidoPaterno = apellidos[0] || ""; // Primer apellido
+      this.apellidoMaterno = apellidos[1] || ""; // Segundo apellido si existe
+    } else {
+      this.apellidoPaterno = "";
+      this.apellidoMaterno = "";
+    }
     },
+    // Función para aceptar la venta
+    
+    async aceptarVenta() {
+    try {
+    this.separarApellidos(); 
+    // Paso 1: Crear la venta (Salida)
+    const salidaResponse = await axios.post('/salida', {
+      cliente_id: this.clienteID,          // ID del cliente
+      vendedor_id: this.vendedorID,        // ID del vendedor
+      monto_total: this.calcularMontoTotal(), // Total de la venta
+      tipo_pago: this.tipoPago,            // Tipo de pago
+      fecha_venta: new Date().toISOString().split('T')[0], // Fecha de la venta
+    });
+
+    // Obtener el ID de la salida creada
+    const salidaID = salidaResponse.data.salida.id;
+
+    // Paso 2: Crear los detalles de la venta (Medicamentos)
+    for (const medicamento of this.medicamentos) {
+      await axios.post('/detalle-salida', {
+        salida_id: salidaID,               // ID de la venta
+        medicamento_id: medicamento.id,    // ID del medicamento
+        cantidad: medicamento.cantidad,    // Cantidad del medicamento
+        precio_unitario: medicamento.Precio, // Precio unitario del medicamento
+        precio_total: medicamento.Precio * medicamento.cantidad, // Precio total
+      });
+    }
+
+    alert("Venta aceptada exitosamente");
+    this.cancelarVenta(); // Limpiar datos de la venta
+    } catch (error) {
+    console.error("Error al procesar la venta:", error);
+    alert("Hubo un error al procesar la venta");
+    }
+    },
+
 
     // Función para cancelar la venta
     async cancelarVenta() {
@@ -153,7 +241,7 @@ export default {
 </script>
 
 <style scoped>
-/* Contenedor principal */
+/* Contenedor principal del formulario */
 .form-container {
   width: 100%;
   margin: 20px auto;
@@ -164,31 +252,106 @@ export default {
 }
 
 /* Estilo para el campo de búsqueda */
+/* Contenedor del botón */
 .search-container {
-  margin-bottom: 20px;
-  border: #e53935;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 20px 0;
 }
 
+/* Botón */
+.search-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}
 .search-input {
   width: 100%;
   padding: 10px;
+  margin-bottom: 10px;
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  margin-top: 5px;
+}
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-/* Tabla de medicamentos 
-.medicamentos-container {
-  margin-top: 20px;
+/* Modal Content */
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
-*/
+
+/* Botón para cerrar */
+.close-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 14px;
+  color: white;
+  background-color: #dc3545;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.close-button:hover {
+  background-color: #c82333;
+}
+
+
+.medicamentos-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.medicamentos-list li {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.medicamentos-list li:hover {
+  background-color: #f1f1f1;
+}
+
+/* Tabla de medicamentos */
 .medicamentos-container {
   width: 100%;
   margin-top: 20px;
-  display: block; /* Asegúrate de que sea visible */
-  border: #4CAF50;
+  display: block;
 }
+
 .medicamentos-table {
   width: 100%;
   border-collapse: collapse;
@@ -197,7 +360,8 @@ export default {
   overflow: hidden;
 }
 
-.medicamentos-table th, .medicamentos-table td {
+.medicamentos-table th,
+.medicamentos-table td {
   padding: 10px;
   text-align: center;
   border-bottom: 1px solid #ddd;
@@ -212,12 +376,14 @@ export default {
   background-color: #f2f2f2;
 }
 
+/* Botones para cantidad */
 .quantity-btn {
   background-color: #f1f1f1;
   border: 1px solid #ddd;
   padding: 5px 10px;
   cursor: pointer;
   border-radius: 5px;
+  transition: background-color 0.3s;
 }
 
 .quantity-btn:hover {
@@ -232,30 +398,41 @@ export default {
   border-radius: 5px;
 }
 
+
 /* Estilos para la información del cliente */
 .cliente-container {
-  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap; /* Permite que los elementos salten de línea si no hay espacio */
+  gap: 16px; /* Espaciado entre los elementos */
+  justify-content: space-between;
+}
+.input-group {
   display: flex;
   flex-direction: column;
+  width: calc(50% - 8px); /* Mitad del ancho menos el gap */
+  position: relative; /* Para el placeholder dentro del input */
 }
-
-.input-group {
-  margin-bottom: 15px;
-}
-
 .input-group label {
   font-weight: bold;
   margin-bottom: 5px;
 }
-
-.input-field {
+.input-field::placeholder {
+  font-size: 14px;
+  color: #6a6a6a;
+}
+/*.input-field {
+  height: 80%;
   width: 100%;
   padding: 10px;
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 8px;
+}*/
+.input-field:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
 }
-
 /* Botones */
 .buttons-container {
   margin-top: 20px;

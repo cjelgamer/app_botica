@@ -68,13 +68,25 @@ Route::get('/medicamentos', function (Request $request) {
     $medicamentos = Medicamento::where('nombre', 'like', '%' . $searchQuery . '%')->get();
     return response()->json($medicamentos);
 });
+//ruta para el cotnrolador venta
+use Illuminate\Support\Facades\Log;
 
-// Ruta para aceptar una venta (simulando la lógica de procesamiento de venta)
 Route::post('/venta', function (Request $request) {
-    $data = $request->all();
-    // Lógica para procesar la venta
+    Log::info('Datos recibidos:', $request->all());
     return response()->json(['status' => 'success', 'message' => 'Venta aceptada']);
 });
+use App\Http\Controllers\SalidaController;
+use App\Http\Controllers\DetalleSalidaController;
+// Ruta para registrar una nueva venta (Salida)
+Route::post('/salida', [SalidaController::class, 'store']);
+
+// Ruta para registrar los detalles de la venta (DetalleSalida)
+Route::post('/detalle-salida', [DetalleSalidaController::class, 'store']);
+
+//Ruta para gusrdar datos dle cliente 
+use App\Http\Controllers\ClienteController;
+
+Route::post('/cliente', [ClienteController::class, 'guardarCliente']);
 
 // Ruta para cancelar la venta
 Route::post('/cancelar-venta', function () {

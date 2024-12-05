@@ -15,8 +15,6 @@ class DetalleSalida extends Model
         'salida_id',
         'medicamento_id',
         'cantidad',
-        'precio_unitario',
-        'precio_total',
     ];
 
     // Relación con la salida
