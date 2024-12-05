@@ -31,7 +31,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(medicamento, index) in medicamentosFiltrados" :key="medicamento.ID">
+          <tr v-for="(medicamento, index) in medicamentosFiltrados" :key="medicamento.ID || index">
             <td>{{ index + 1 }}</td>
             <td>{{ medicamento.Nombre }}</td>
             <td>{{ medicamento.Descripcion }}</td>
@@ -139,15 +139,16 @@ export default {
       this.currentMedicamento = { ...medicamento };
     },
     async addMedicamento() {
-      try {
-        const response = await axios.post('/medicamentos', this.currentMedicamento);
-        this.medicamentos.push(response.data);
-        this.medicamentosFiltrados.push(response.data);
-        this.closeModal();
-      } catch (error) {
-        console.error('Error al agregar medicamento:', error);
-      }
-    },
+  try {
+    const response = await axios.post('/medicamentos', this.currentMedicamento);
+    this.medicamentos.push(response.data); // Actualizas solo medicamentos
+    this.searchMedicamentos(); // Filtras los datos nuevamente
+    this.closeModal();
+  } catch (error) {
+    console.error('Error al agregar medicamento:', error);
+  }
+},
+
     async updateMedicamento() {
       try {
         const response = await axios.put(`/medicamentos/${this.currentMedicamento.ID}`, this.currentMedicamento);

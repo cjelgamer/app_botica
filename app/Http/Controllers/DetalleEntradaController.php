@@ -33,4 +33,5 @@ class DetalleEntradaController extends Controller
             ], 500);
         }
     }
+
 }

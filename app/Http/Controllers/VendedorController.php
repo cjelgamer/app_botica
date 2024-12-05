@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\VendedorSimple;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth; // Añade esta línea
 
 class VendedorController extends Controller
 {
@@ -137,6 +138,8 @@ class VendedorController extends Controller
             return response()->json(['error' => 'Error al eliminar vendedor', 'message' => $e->getMessage()], 500);
         }
     }
+
+
 }
 
 

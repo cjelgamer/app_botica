@@ -50,4 +50,5 @@ class VentaController extends Controller
 
         return response()->json(['message' => 'Venta realizada con éxito', 'venta' => $venta], 201);
     }
+
 }

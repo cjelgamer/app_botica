@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard">
         <header class="dashboard-header">
-            <img src="/images/logo_c.png" alt="Logo Botica" class="logo">
+            <img src="/images/logo_c.png" alt="Logo Botica" class="logo" @click="$router.push('/admin-dashboard')" style="cursor: pointer;">
             <nav class="dashboard-nav">
                 <button @click="$router.push({ path: '/admin-dashboard/vendedores' })">Ver Vendedores</button>
                 <button @click="$router.push({ path: '/admin-dashboard/laboratorios' })">Ver Laboratorios</button>
@@ -11,7 +11,7 @@
             <!--<input type="text" placeholder="Buscar..." class="search-bar" />-->
             <div class="user-options">
                 <i class="fas fa-bell notification-icon"></i>
-                <i class="fas fa-user-circle user-icon"></i>
+                <i class="fas fa-user-circle user-icon" @click="$router.push({ path: '/admin-dashboard/perfil' })"></i>
             </div>
         </header>
 
@@ -25,9 +25,14 @@
 
         <main class="dashboard-content">
             <!-- Mostrar esta sección solo si no estamos en la ruta "Vendedores" -->
-            <section class="main-section" v-if="$route.name !== 'Vendedores' && $route.name !== 'Laboratorios'&& $route.name !== 'Medicamento' && $route.name !== 'RegistrarCompra'  && $route.name !== 'RegistrarVenta'" >
+            <section class="main-section" v-if="$route.name !== 'Vendedores' && 
+                                 $route.name !== 'Laboratorios' && 
+                                 $route.name !== 'Medicamento' && 
+                                 $route.name !== 'RegistrarCompra' && 
+                                 $route.name !== 'RegistrarVenta' && 
+                                 $route.name !== 'PerfilVendedor'" >
                 <div class="action-container">
-                    <div class="action-icon" @click="showMessage('publicarMedicamento')">
+                    <div class="action-icon" @click="openModal('publicarMedicamento')">
                         <img src="/images/publish_icon.png" alt="Publicar Medicamento" class="icon-image" />
                         <p>Publicar un Medicamento</p>
                     </div>
@@ -36,7 +41,7 @@
                         <p>Entrevistas y Contratos</p>
                     </div>
                 </div>
-                <button class="publish-button" @click="showMessage('publicarMedicamento')">Publicar un Medicamento</button>
+                <button class="publish-button" @click="openModal('publicarMedicamento')">Publicar un Medicamento</button>
             </section>
 
             <!-- Área principal para cargar el componente de "Vendedores" -->
@@ -62,6 +67,10 @@
                 <router-view></router-view>
             </section>
 
+            <section class="main-section" v-if="$route.name === 'PerfilVendedor'">
+                <router-view></router-view>
+            </section>
+
             <aside class="faq-section">
                 <h3>Preguntas</h3>
                 <ul>
@@ -72,43 +81,77 @@
                 </ul>
             </aside>
         </main>
+
+        <FormularioMedicamento 
+            :isOpen="modalOpen"
+            @close-modal="closeModal" 
+            @add-medicamento="handleAddMedicamento"
+        />
+
     </div>
 </template>
 
 
 <script>
+import FormularioMedicamento from '@/components/FormularioMedicamento.vue';  // Usando alias '@' para acceder a 'src/components'
 export default {
+    
+    components: {
+        FormularioMedicamento
+    },
+
+    data() {
+        return {
+            modalOpen: false,  // Estado para controlar la visibilidad del modal
+            medicamento: null, // Aquí puedes almacenar el medicamento que se está publicando
+        };
+    },
     methods: {
-        showMessage(action) {
-            if (action === 'verVendedores') {
-                this.$router.push({ name: 'Vendedores' });
-            } 
-            else if(action === 'verLaboratorios'){
-                this.$router.push({ name: 'Laboratorios' });
-            }   
-            else if (action === 'listaMedicamentos') {
-                this.$router.push({ name: 'Medicamento' }); // Redirige a la ruta de medicamentos
-            }
-            else if (action === 'registrarCompra') {
-                this.$router.push({ path: '/admin-dashboard/registrar-compra' });
-            }
-            else if (action === 'registrarVenta') {
-                this.$router.push({ path: '/admin-dashboard/registrar-venta' });
-            }
-            else {
-                const messages = {
-                    verProveedores: "Moviendo a pestaña de proveedores",
-                    descargarReportes: "Descargando reportes",
-                    ajustarStock: "Ajustando stock",
-                    realizarVenta: "Moviendo a realizar venta",
-                    publicarMedicamento: "Moviendo a publicar medicamento",
-                    entrevistasContratos: "Moviendo a entrevistas y contratos",
-                };
-                console.log(messages[action]);
-                alert(messages[action]);
-            }
+    // Método para abrir el modal
+    openModal(action) {
+        if (action === 'publicarMedicamento') {
+            this.modalOpen = true;  // Abrir el modal cuando se haga clic en 'Publicar Medicamento'
         }
-    }
+    },
+
+    // Método para cerrar el modal
+    closeModal() {
+        this.modalOpen = false;  // Cerrar el modal
+    },
+
+    handleAddMedicamento(medicamento) {
+      // Maneja la lógica para agregar el medicamento
+      console.log('Medicamento agregado:', medicamento);
+      this.closeModal();  // Cierra el modal después de agregar el medicamento
+    },
+
+    // Otros métodos para la navegación
+    showMessage(action) {
+        if (action === 'verVendedores') {
+            this.$router.push({ name: 'Vendedores' });
+        } else if(action === 'verLaboratorios'){
+            this.$router.push({ name: 'Laboratorios' });
+        } else if (action === 'listaMedicamentos') {
+            this.$router.push({ name: 'Medicamento' });
+        } else if (action === 'registrarCompra') {
+            this.$router.push({ path: '/admin-dashboard/registrar-compra' });
+        } else if (action === 'registrarVenta') {
+            this.$router.push({ path: '/admin-dashboard/registrar-venta' });
+        } else {
+            const messages = {
+                verProveedores: "Moviendo a pestaña de proveedores",
+                descargarReportes: "Descargando reportes",
+                ajustarStock: "Ajustando stock",
+                realizarVenta: "Moviendo a realizar venta",
+                publicarMedicamento: "Moviendo a publicar medicamento",
+                entrevistasContratos: "Moviendo a entrevistas y contratos",
+            };
+            console.log(messages[action]);
+            alert(messages[action]);
+        }
+    },
+}
+
 };
 </script>
 

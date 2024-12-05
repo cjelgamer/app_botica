@@ -33,4 +33,5 @@ class SalidaController extends Controller
             'salida' => $salida,
         ]);
     }
+
 }

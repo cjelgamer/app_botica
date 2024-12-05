@@ -99,7 +99,21 @@ CREATE TABLE History (
   Fecha_Operacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (Movimiento_ID) REFERENCES Movimiento(ID)
 );
-select * from Laboratorio;
+
+
+CREATE TABLE Caja (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Fecha DATE,
+  Saldo_Inicial DECIMAL(10, 2),
+  Saldo_Final DECIMAL(10, 2)
+);
+
+#modificaciones para tabla caja :
+ALTER TABLE Caja
+ADD COLUMN Vendedor_ID INT,
+ADD FOREIGN KEY (Vendedor_ID) REFERENCES Vendedor(ID);
+
+select * from Laboratorio;  
 INSERT INTO Laboratorio VALUES (NULL, 'Lab1', '987654321', 'Jr.Drugs', '20123456789');
 
 
@@ -246,3 +260,39 @@ VALUES ('Salud Vital', '321987654', 'Av. La Salud 101, Trujillo', '4567890');
 
 INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
 VALUES ('Laboratorios Santa Fe', '789456123', 'Av. Los Andes 202, Chiclayo', '5678901');
+
+
+##################################################################################
+##################################################################################
+###########################Disparadores###########################################
+##################################################################################
+##################################################################################
+
+DELIMITER //
+
+CREATE TRIGGER tr_ActualizarCaja AFTER INSERT ON Salida
+FOR EACH ROW
+BEGIN
+  DECLARE saldo_inicial DECIMAL(10, 2);
+  DECLARE fecha_actual DATE;
+  
+  SET fecha_actual = CURDATE();
+  
+  -- Verificar si ya existe un registro para la fecha actual y el vendedor específico
+  SELECT Saldo_Final INTO saldo_inicial 
+  FROM Caja 
+  WHERE Fecha = fecha_actual AND Vendedor_ID = NEW.Vendedor_ID;
+  
+  IF saldo_inicial IS NULL THEN
+    -- Si no existe un registro, insertar uno nuevo
+    INSERT INTO Caja (Fecha, Saldo_Inicial, Saldo_Final, Vendedor_ID)
+    VALUES (fecha_actual, NEW.Monto_Total, NEW.Monto_Total, NEW.Vendedor_ID);
+  ELSE
+    -- Si existe, actualizar el saldo final
+    UPDATE Caja 
+    SET Saldo_Final = Saldo_Final + NEW.Monto_Total
+    WHERE Fecha = fecha_actual AND Vendedor_ID = NEW.Vendedor_ID;
+  END IF;
+END //
+
+DELIMITER ;

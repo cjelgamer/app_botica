@@ -33,5 +33,6 @@ class DetalleSalidaController extends Controller
             'detalle' => $detalle,
         ]);
     }
+
 }
 
