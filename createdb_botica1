@@ -14,6 +14,22 @@ CREATE TABLE Medicamento (
   Tipo VARCHAR(100)
 );
 
+
+###################INDICES################
+
+-- Índice FULLTEXT para búsquedas de texto en nombre y descripción
+ALTER TABLE Medicamento ADD FULLTEXT INDEX idx_medicamento_search (Nombre, Descripcion);
+
+-- Índice compuesto para filtros comunes (tipo y stock)
+ALTER TABLE Medicamento ADD INDEX idx_tipo_stock (Tipo, Stock);
+
+-- Índice para ordenamiento por precio
+ALTER TABLE Medicamento ADD INDEX idx_precio (Precio);
+
+
+
+#########################################
+
 CREATE TABLE Laboratorio (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Nombre VARCHAR(255),

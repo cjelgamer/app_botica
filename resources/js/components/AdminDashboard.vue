@@ -166,107 +166,105 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #fff; /* Fondo blanco para el header principal */
+    background-color: #fff;
     padding: 10px 20px;
-    color: #333; /* Color de texto general para el header */
+    color: #333;
+}
+
+.dashboard-header .dashboard-nav {
+    display: flex;
+    gap: 8px;
 }
 
 .dashboard-header .dashboard-nav button {
-    background: none;
-    border: none;
-    color: #333; /* Color de texto en negro para los botones */
+    background: transparent;
+    border: 2px solid transparent;
+    color: #333;
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
-    padding: 5px 15px;
-    transition: color 0.3s ease;
-}
-
-.dashboard-header .dashboard-nav button:hover {
-    color: #4CAF50; /* Color de hover en verde */
-}
-
-.search-bar {
-    padding: 5px;
-    width: 200px;
-    margin-left: 20px;
+    padding: 8px 15px;
+    transition: all 0.2s ease;
     border-radius: 5px;
-    border: 1px solid #ccc;
+    position: relative;
 }
 
+.dashboard-header .dashboard-nav button.active {
+    background-color: #4CAF50;
+    color: white;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.dashboard-header .dashboard-nav button:not(.active):hover {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+}
 
 .sub-header {
     display: flex;
     justify-content: space-around;
-    background-color: #333; /* Fondo negro para el sub-header */
+    background-color: #333;
     padding: 10px 0;
 }
 
 .sub-header button {
-    background: none;
+    background: transparent;
     border: none;
     color: #fff;
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
-    padding: 5px 15px;
-    transition: color 0.3s ease;
+    padding: 8px 15px;
+    transition: all 0.2s ease;
+    border-radius: 5px;
+    opacity: 0.8;
 }
 
-.sub-header button:hover {
-    color: #4CAF50; /* Color de hover en verde */
+.sub-header button.active {
+    background-color: #4CAF50;
+    color: white;
+    opacity: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.sub-header button:not(.active):hover {
+    background-color: rgba(76, 175, 80, 0.2);
+    opacity: 1;
+}
 
 .logo {
     width: 50px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
 }
 
+.logo:hover {
+    transform: scale(1.05);
+}
 
-
+.user-options {
+    display: flex;
+    gap: 15px;
+}
 
 .user-options i {
     font-size: 20px;
-    color: #333; /* Cambia el color de los íconos a negro */
+    color: #333;
     cursor: pointer;
-    margin-left: 15px;
-    transition: color 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .user-options i:hover {
-    color: #4CAF50; /* Color de hover en verde para los íconos */
-}
-
-.notification-icon, .user-icon {
-    font-size: 20px;
-    cursor: pointer;
-    color: white;
+    color: #4CAF50;
+    transform: scale(1.1);
 }
 
 .dashboard-content {
     display: flex;
     padding: 20px;
     background-color: #f4f4f4;
-    height: calc(100vh - 60px); /* Ajuste dinámico para la altura */
-}
-
-.side-menu {
-    width: 200px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-right: 20px;
-}
-
-.side-menu button {
-    padding: 12px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    text-align: left;
-    border-radius: 5px;
-    font-weight: bold;
+    height: calc(100vh - 120px);
+    overflow: hidden;
 }
 
 .main-section {
@@ -277,8 +275,9 @@ export default {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-right: 20px;
+    overflow-y: auto;
 }
 
 .action-container {
@@ -295,12 +294,18 @@ export default {
     cursor: pointer;
     padding: 15px;
     text-align: center;
+    transition: transform 0.2s ease;
 }
 
-.action-icon img {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 10px;
+.action-icon:hover {
+    transform: translateY(-5px);
+}
+
+.icon-image {
+    width: 150px !important;
+    height: 150px !important;
+    margin-bottom: 10px !important;
+    transition: transform 0.2s ease;
 }
 
 .publish-button {
@@ -313,6 +318,14 @@ export default {
     border-radius: 5px;
     font-weight: bold;
     margin-top: 10px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.publish-button:hover {
+    background-color: #4CAF50;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
 }
 
 .faq-section {
@@ -320,13 +333,17 @@ export default {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    height: fit-content;
 }
 
 .faq-section h3 {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     font-size: 16px;
     font-weight: bold;
+    color: #333;
+    border-bottom: 2px solid #4CAF50;
+    padding-bottom: 8px;
 }
 
 .faq-section ul {
@@ -336,31 +353,50 @@ export default {
 }
 
 .faq-section ul li {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.faq-section ul li:hover {
+    background-color: rgba(76, 175, 80, 0.1);
 }
 
 .faq-section ul li a {
     color: #333;
     text-decoration: none;
     font-weight: bold;
+    transition: color 0.2s ease;
 }
 
-.action-icon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    padding: 15px;
-    text-align: center;
+.faq-section ul li a:hover {
+    color: #4CAF50;
 }
 
-/* Control de tamaño de las imágenes */
-.icon-image {
-    width: 150px !important; /* Cambia este valor según el tamaño deseado */
-    height: 150px !important; /* Cambia este valor según el tamaño deseado */
-    margin-bottom: 10px !important;
-}
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        gap: 10px;
+    }
 
+    .dashboard-nav {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .dashboard-content {
+        flex-direction: column;
+    }
+
+    .main-section {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+
+    .faq-section {
+        width: 100%;
+    }
+}
 </style>
-
-
