@@ -63,10 +63,6 @@ Route::group(['middleware' => ['web']], function () {
    Route::post('/entrada', [EntradaController::class, 'guardarEntrada']);
    Route::post('/detalle-entrada', [DetalleEntradaController::class, 'agregarDetalle']);
 
-// routes/web.php
-
-use App\Models\Medicamento;
-use Illuminate\Http\Request;
 
 // Ruta para obtener los medicamentos (para búsqueda)
 Route::get('/medicamentos', function (Request $request) {
