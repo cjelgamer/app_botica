@@ -12,7 +12,7 @@ class SalidaController extends Controller
     {
         // Validar los datos del formulario de la venta
         $validated = $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',  // ID del cliente
+            'cliente_id' => 'required|exists:cliente,id',  // ID del cliente
             'vendedor_id' => 'required|exists:users,id',    // ID del vendedor
             'monto_total' => 'required|numeric|min:0',      // Monto total de la venta
             'tipo_pago' => 'required|string|max:50',         // Tipo de pago

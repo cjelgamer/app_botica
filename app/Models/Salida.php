@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Salida extends Model
 {
     use HasFactory;
-
+    protected $table = 'salida';
+    protected $primaryKey = 'ID'; // Clave primaria personalizada
     // Especificar la tabla si no sigue la convención plural
-    protected $table = 'salidas';
 
     // Campos asignables en masa
     protected $fillable = [

@@ -10,7 +10,17 @@ class Cliente extends Model
     use HasFactory;
 
     // Especificamos la tabla si el nombre no sigue la convención plural
-    protected $table = 'cliente';
+    protected $table = 'cliente'; // Nombre de la tabla
+
+    // Especificamos la clave primaria
+    protected $primaryKey = 'ID';
+
+    // Especificamos que 'ID' es autoincrementable
+    public $incrementing = true;
+
+    // Especificamos que 'ID' es de tipo entero
+    protected $keyType = 'int';
+    public $timestamps = false;
 
     // Campos asignables en masa
     protected $fillable = [

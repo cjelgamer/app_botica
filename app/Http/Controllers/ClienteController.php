@@ -11,10 +11,10 @@ class ClienteController extends Controller
     {
         // Validar los datos recibidos
         $request->validate([
-            'dni' => 'required|string|max:20',
+            'dni' => 'required|string|max:20|unique:Cliente,DNI', // Validar DNI único
             'nombre' => 'required|string|max:255',
             'apellido_pat' => 'required|string|max:255',
-            'apellido_mat' => 'nullable|string|max:255', // Es opcional
+            'apellido_mat' => 'required|string|max:255', // Es opcional
         ]);
 
         // Crear o actualizar el cliente en la base de datos
@@ -23,10 +23,11 @@ class ClienteController extends Controller
             [
                 'Nombre' => $request->nombre,
                 'Apellido_Pat' => $request->apellido_pat,
-                'Apellido_Mat' => $request->apellido_mat ?? null,
+                'Apellido_Mat' => $request->apellido_mat,
             ]
         );
 
+        // Devolver la respuesta con el cliente creado o actualizado
         return response()->json([
             'message' => 'Cliente guardado exitosamente.',
             'cliente' => $cliente

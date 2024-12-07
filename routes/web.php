@@ -82,3 +82,30 @@ Route::post('/venta', function (Request $request) {
        return response()->json(['status' => 'success', 'message' => 'Venta cancelada']);
    });
 });
+
+use App\Http\Controllers\SalidaController;
+use App\Http\Controllers\DetalleSalidaController;
+
+// Rutas para Salida
+Route::prefix('salida')->group(function () {
+    Route::get('/', [SalidaController::class, 'index']);           // Listar todas las salidas
+    Route::get('/{id}', [SalidaController::class, 'show']);        // Mostrar una salida específica
+    Route::post('/', [SalidaController::class, 'store']);          // Crear una nueva salida
+    Route::put('/{id}', [SalidaController::class, 'update']);      // Actualizar una salida
+    Route::delete('/{id}', [SalidaController::class, 'destroy']);  // Eliminar una salida
+});
+
+// Rutas para DetalleSalida
+Route::prefix('detalle-salida')->group(function () {
+    Route::get('/', [DetalleSalidaController::class, 'index']);           // Listar todos los detalles de salidas
+    Route::get('/{id}', [DetalleSalidaController::class, 'show']);        // Mostrar un detalle específico
+    Route::post('/', [DetalleSalidaController::class, 'store']);          // Crear un nuevo detalle
+    Route::put('/{id}', [DetalleSalidaController::class, 'update']);      // Actualizar un detalle
+    Route::delete('/{id}', [DetalleSalidaController::class, 'destroy']);  // Eliminar un detalle
+});
+use App\Http\Controllers\ClienteController;
+
+Route::prefix('cliente')->group(function () {
+    // Ruta para guardar o actualizar un cliente (por DNI)
+    Route::post('/', [ClienteController::class, 'guardarCliente'])->name('cliente.guardar');
+});

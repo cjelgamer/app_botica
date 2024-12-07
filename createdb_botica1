@@ -296,3 +296,5 @@ BEGIN
 END //
 
 DELIMITER ;
+
+select * from Cliente;

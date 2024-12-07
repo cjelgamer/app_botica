@@ -49,6 +49,7 @@
             <th>Cantidad</th>
             <th>Precio C/U</th>
             <th>Precio Total</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -63,13 +64,18 @@
                 type="number"
                 :max="medicamento.Stock"
                 min="1"
-                @blur="updateTotal"
                 class="quantity-input"
+                @input="calcularPrecioTotal(medicamento)"
               />
               <button @click="updateCantidad(medicamento, 1)" class="quantity-btn">+</button>
             </td>
             <td>{{ medicamento.Precio }}</td>
             <td>{{ medicamento.Precio * medicamento.cantidad }}</td>
+            <td>
+              <button @click="removeMedicamento(medicamento)" class="delete-button">
+                 <i class="fa fa-trash"></i>
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -106,10 +112,15 @@ export default {
   data() {
     return {
       medicamentos: [], // Lista de medicamentos seleccionados
+      nuevoMedicamento: {
+        id: null,
+        Nombre: '',
+        Stock: 0,
+        cantidad: 1,
+        Precio: 0
+      },
       nombreCliente: "", // Nombre del cliente
       apellidoCliente: "", // Campo para capturar ambos apellidos juntos
-      apellidoPaterno: "", // Apellido paterno del cliente
-      apellidoMaterno: "", // Apellido materno del cliente
       dniCliente: "", // DNI del cliente
       allMedicamentos: [], // Todos los medicamentos disponibles para buscar
       filteredMedicamentos: [], // Medicamentos filtrados en la búsqueda
@@ -158,13 +169,34 @@ export default {
         medicamento.Nombre.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
     },
-    addMedicamento(medicamento) {
-      if (!this.medicamentos.find((m) => m.id === medicamento.id)) {
-        this.medicamentos.push({ ...medicamento, cantidad: 1 });
-      }
-      this.closeModal();
-    },
+    // Función para agregar un medicamento a la venta
+    addMedicamento(nuevoMedicamento) {
+      // Verificar si el medicamento ya existe en la lista
+    const medicamentoExistente = this.medicamentos.find(
+      (medicamento) => medicamento.Nombre === nuevoMedicamento.Nombre
+    );
 
+    if (medicamentoExistente) {
+      // Si existe, solo actualiza la cantidad
+      medicamentoExistente.cantidad += nuevoMedicamento.cantidad;
+    } else {
+      // Si no existe, agrega un nuevo medicamento
+      this.medicamentos.push({ ...nuevoMedicamento,
+      cantidad: nuevoMedicamento.cantidad || 1, // Por defecto, 1
+      Precio: nuevoMedicamento.Precio || 0 // Por defecto, 0
+      });
+    }
+
+    // Limpiar el formulario o modal (opcional)
+    this.nuevoMedicamento = {
+      id: null,
+      Nombre: '',
+      Stock: 0,
+      cantidad: 1,
+      Precio: 0
+    };
+      this.closeModal(); // Cerrar el modal después de agregarlo
+    },
     // Función para actualizar la cantidad de un medicamento
     updateCantidad(medicamento, delta) {
       if (medicamento.cantidad + delta <= medicamento.Stock && medicamento.cantidad + delta >= 1) {
@@ -176,49 +208,101 @@ export default {
     updateTotal() {
       // Se puede agregar aquí lógica para recalcular el total de la venta si es necesario.
     },
-    separarApellidos() {
+    // Calcular el precio total de un medicamento
+    calcularPrecioTotal(medicamento) {
+      if (medicamento.cantidad > medicamento.Stock) {
+        medicamento.cantidad = medicamento.Stock;
+      } else if (medicamento.cantidad < 1) {
+        medicamento.cantidad = 1;
+      }
+    },
+
+    separarApellidoPaterno() {
     if (this.apellidoCliente.trim() !== "") {
-      const apellidos = this.apellidoCliente.trim().split(" ");
-      this.apellidoPaterno = apellidos[0] || ""; // Primer apellido
-      this.apellidoMaterno = apellidos[1] || ""; // Segundo apellido si existe
-    } else {
-      this.apellidoPaterno = "";
-      this.apellidoMaterno = "";
+    const apellidos = this.apellidoCliente.trim().split(" ");
+        return apellidos[0] || "";  // Primer apellido
+     }
+        return "Apellido Paterno Requerido"; 
+     },
+
+    separarApellidoMaterno() {
+     if (this.apellidoCliente.trim() !== "") {
+    const apellidos = this.apellidoCliente.trim().split(" ");
+    return apellidos.length > 1 ? apellidos[apellidos.length - 1] : "";  // Último apellido
     }
+    return "Apellido Materno Requerido"
     },
     // Función para aceptar la venta
     
     async aceptarVenta() {
-    try {
-    this.separarApellidos(); 
+    try { 
+    let montoTotal = 0; // Inicializar el monto total
+
+    for (const medicamento of this.medicamentos) {
+      if (medicamento.cantidad === undefined || medicamento.cantidad === null) {
+        alert(`El medicamento ${medicamento.Nombre} no tiene una cantidad válida.`);
+        return;
+      }
+      medicamento.cantidad = Number(medicamento.cantidad) || 0; // Convertir a número
+      
+      if (medicamento.cantidad <= 0) {
+        alert(`La cantidad del medicamento ${medicamento.Nombre} debe ser mayor a 0.`);
+        return;
+      }
+
+      // Calcular el precio total del medicamento y sumar al monto total
+      montoTotal += medicamento.Precio * medicamento.cantidad;
+    }
+    //try {
+    const apellidoPaterno = this.separarApellidoPaterno();
+    const apellidoMaterno = this.separarApellidoMaterno();
+
+    const clienteResponse = await axios.post('/cliente', {
+    dni: this.dniCliente,
+    nombre: this.nombreCliente,
+    apellido_pat: apellidoPaterno,  // Enviar como apellido_pat
+    apellido_mat: apellidoMaterno   // Enviar como apellido_mat
+    });
+    const clienteID = clienteResponse.data.cliente.ID;
     // Paso 1: Crear la venta (Salida)
     const salidaResponse = await axios.post('/salida', {
-      cliente_id: this.clienteID,          // ID del cliente
+      cliente_id: clienteID,          // ID del cliente
       vendedor_id: this.vendedorID,        // ID del vendedor
-      monto_total: this.calcularMontoTotal(), // Total de la venta
+      monto_total: this.montoTotal, // Total de la venta
       tipo_pago: this.tipoPago,            // Tipo de pago
       fecha_venta: new Date().toISOString().split('T')[0], // Fecha de la venta
     });
 
     // Obtener el ID de la salida creada
     const salidaID = salidaResponse.data.salida.id;
-
     // Paso 2: Crear los detalles de la venta (Medicamentos)
     for (const medicamento of this.medicamentos) {
       await axios.post('/detalle-salida', {
         salida_id: salidaID,               // ID de la venta
         medicamento_id: medicamento.id,    // ID del medicamento
-        cantidad: medicamento.cantidad,    // Cantidad del medicamento
+        cantidad: medicamento.cantidad || 0,   // Cantidad del medicamento
         precio_unitario: medicamento.Precio, // Precio unitario del medicamento
         precio_total: medicamento.Precio * medicamento.cantidad, // Precio total
       });
     }
-
+    
     alert("Venta aceptada exitosamente");
     this.cancelarVenta(); // Limpiar datos de la venta
     } catch (error) {
+    // Intenta obtener el mensaje de error
+    let errorMessage = "Hubo un error al procesar la venta";
+  
+    // Si el error es de Axios y tiene una respuesta del servidor
+    if (error.response && error.response.data) {
+    errorMessage = error.response.data.message || "Error en la respuesta del servidor";
+    } else if (error.message) {
+    // Si el error es genérico
+    errorMessage = error.message;
+    }
+
+     // Muestra el mensaje del error en la consola y en el alert
     console.error("Error al procesar la venta:", error);
-    alert("Hubo un error al procesar la venta");
+    alert(errorMessage);
     }
     },
 
@@ -235,7 +319,26 @@ export default {
       } catch (error) {
         console.error('Error al cancelar la venta:', error);
       }
+    },
+    
+    removeMedicamento(medicamentoAEliminar) {
+    const medicamentoExistente = this.medicamentos.find(
+    (medicamento) => medicamento.Nombre === medicamentoAEliminar.Nombre
+    );
+
+    if (medicamentoExistente) {
+      if (medicamentoExistente.cantidad > 1) {
+      // Si la cantidad es mayor a 1, reducimos la cantidad
+      medicamentoExistente.cantidad -= 1;
+      } else {
+      // Si es 1, eliminamos el medicamento de la lista
+      this.medicamentos = this.medicamentos.filter(
+        (medicamento) => medicamento.Nombre !== medicamentoAEliminar.Nombre
+      );
+      }
     }
+   }
+
   }
 };
 </script>
