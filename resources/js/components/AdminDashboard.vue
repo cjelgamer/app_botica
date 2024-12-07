@@ -5,12 +5,12 @@
             <nav class="dashboard-nav">
                 <button @click="$router.push({ path: '/admin-dashboard/vendedores' })">Ver Vendedores</button>
                 <button @click="$router.push({ path: '/admin-dashboard/laboratorios' })">Ver Laboratorios</button>
-                <button @click="showMessage('descargarReportes')">Descargar Reportes</button>
+                <button @click="$router.push({ path: '/admin-dashboard/generar-reportes' })">Generar Reportes</button>
                 <button @click="showMessage('ajustarStock')">Ajustar Stock</button>
             </nav>
             <!--<input type="text" placeholder="Buscar..." class="search-bar" />-->
             <div class="user-options">
-                <i class="fas fa-bell notification-icon"></i>
+                <i class="fas fa-bell notification-icon"></i> 
                 <i class="fas fa-user-circle user-icon" @click="$router.push({ path: '/admin-dashboard/perfil' })"></i>
             </div>
         </header>
@@ -30,7 +30,8 @@
                                  $route.name !== 'Medicamento' && 
                                  $route.name !== 'RegistrarCompra' && 
                                  $route.name !== 'RegistrarVenta' && 
-                                 $route.name !== 'PerfilVendedor'" >
+                                 $route.name !== 'PerfilVendedor'&& 
+                                 $route.name !== 'GenerarReportes'"  >
                 <div class="action-container">
                     <div class="action-icon" @click="openModal('publicarMedicamento')">
                         <img src="/images/publish_icon.png" alt="Publicar Medicamento" class="icon-image" />
@@ -68,6 +69,11 @@
             </section>
 
             <section class="main-section" v-if="$route.name === 'PerfilVendedor'">
+                <router-view></router-view>
+            </section>
+
+              <!-- Mostrar GenerarReportes -->
+            <section class="main-section" v-else-if="$route.name === 'GenerarReportes'">
                 <router-view></router-view>
             </section>
 
