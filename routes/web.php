@@ -20,6 +20,7 @@ Route::get('/', function () {
 Route::get('/vendedor/login', [VendedorLoginController::class, 'showLoginForm'])->name('vendedor.login');
 Route::post('/vendedor/login', [VendedorLoginController::class, 'login']);
 
+Route::get('/reporte-compras', 'ReporteController@generarReporteCompras')->name('reporte.compras');
 
 // Rutas protegidas
 Route::group(['middleware' => ['web']], function () {
@@ -62,6 +63,7 @@ Route::group(['middleware' => ['web']], function () {
    // Rutas para entradas y detalles
    Route::post('/entrada', [EntradaController::class, 'guardarEntrada']);
    Route::post('/detalle-entrada', [DetalleEntradaController::class, 'agregarDetalle']);
+
 
 
 // Ruta para obtener los medicamentos (para búsqueda)
