@@ -1,12 +1,33 @@
 <template>
   <div class="generar-reportes p-4">
-      <h2>Generar Reportes</h2>
-      <a href="/generar-reporte-compras" 
-           class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-block">
-            Generar Reporte de Compras
-      </a>
-      
-      <div v-if="error" class="text-red-600 mt-2">{{ error }}</div>
+    <h2 class="text-2xl font-bold mb-6">Generar Reportes de Compras</h2>
+    
+    <div class="flex gap-4 flex-wrap">
+      <button 
+        @click="generarReporteCompras('todo')"
+        :disabled="generando"
+        class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+        Generar Reporte Completo
+      </button>
+
+      <button 
+        @click="generarReporteCompras('semana')"
+        :disabled="generando"
+        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+        Reporte Últimos 7 Días
+      </button>
+
+      <button 
+        @click="generarReporteCompras('mes')"
+        :disabled="generando"
+        class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded">
+        Reporte Último Mes
+      </button>
+    </div>
+    
+    <div v-if="error" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+      {{ error }}
+    </div>
   </div>
 </template>
 
@@ -16,78 +37,40 @@ import axios from 'axios';
 export default {
   name: 'GenerarReportes',
   data() {
-      return {
-          error: null,
-          generando: false,
-      }
+    return {
+      error: null,
+      generando: false,
+    }
   },
   methods: {
-      async generarReporteCompras() {
-          this.error = null;
-          this.generando = true;
+    async generarReporteCompras(tipo) {
+      this.error = null;
+      this.generando = true;
 
-          try {
-              const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-              
-              const response = await axios({
-                  url: '/generar-reporte-compras',
-                  method: 'POST',
-                  responseType: 'blob',
-                  headers: {
-                      'X-CSRF-TOKEN': token,
-                      'Content-Type': 'application/json',
-                      'Accept': 'application/pdf'
-                  }
-              });
-
-              const blob = new Blob([response.data], { type: 'application/pdf' });
-              const url = window.URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = 'reporte_compras.pdf';
-              link.click();
-              
-              window.URL.revokeObjectURL(url);
-          } catch (error) {
-              console.error('Error:', error);
-              this.error = 'Error al generar el reporte';
-          } finally {
-              this.generando = false;
+      try {
+        const response = await axios({
+          url: `/generar-reporte-compras/${tipo}`,
+          method: 'GET',
+          responseType: 'blob',
+          headers: {
+            'Accept': 'application/pdf'
           }
+        });
+
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reporte_compras_${tipo}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error:', error);
+        this.error = 'Error al generar el reporte. Por favor, intente nuevamente.';
+      } finally {
+        this.generando = false;
       }
+    }
   }
 }
 </script>
-
-<style scoped>
-.generar-reportes {
-  padding: 20px;
-}
-
-.botones-reportes {
-  margin-top: 20px;
-}
-
-.btn-reporte {
-  padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.btn-reporte:hover {
-  background-color: #45a049;
-}
-
-.error-mensaje {
-  margin-top: 20px;
-  padding: 10px;
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #ef9a9a;
-  border-radius: 4px;
-}
-</style>

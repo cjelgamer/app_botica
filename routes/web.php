@@ -62,7 +62,7 @@ Route::group(['middleware' => ['web']], function () {
    Route::post('/entrada', [EntradaController::class, 'guardarEntrada']);
    Route::post('/detalle-entrada', [DetalleEntradaController::class, 'agregarDetalle']);
 
-   Route::match(['get', 'post'], '/generar-reporte-compras', [ReporteController::class, 'generarReporteCompras'])
+   Route::get('/generar-reporte-compras/{tipo}', [ReporteController::class, 'generarReporteCompras'])
    ->name('reporte.compras.generar');
 
 
