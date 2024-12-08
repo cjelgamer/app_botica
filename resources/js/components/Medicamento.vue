@@ -360,25 +360,7 @@ export default {
     margin-top: 20px;
   }
   
-  .status-button {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .active-status {
-    background-color: green;
-    color: white;
-  }
-  
-  .inactive-status {
-    background-color: red;
-    color: white;
-  }
+
   
   
   </style>

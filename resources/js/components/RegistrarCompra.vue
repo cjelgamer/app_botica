@@ -384,23 +384,80 @@ export default {
   flex: 1;
 }
 
+
+
+
+
 .add-button {
-  padding: 6px 10px; /* Reducido */
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
+  display: inline-block;
+  transition: all 0.2s ease-in;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+  color: #090909;
+  padding: 0.2em 0.5em;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s ease;
-  font-size: 14px; /* Tamaño de letra más pequeño */
+  font-size: 13px;
+  border-radius: 0.5em;
+  background: #c8ead5;
+  border: 1px solid #e8e8e8;
+  box-shadow: 6px 6px 12px #ffffff, -6px -6px 12px #ffffff;
+}
+
+.add-button:active {
+  color: #ffffff;
+  box-shadow: inset 4px 4px 12px #ffffff, inset -4px -4px 12px #ffffff;
+}
+
+.add-button:before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) scaleY(1) scaleX(1.25);
+  top: 100%;
+  width: 140%;
+  height: 180%;
+  background-color: rgba(0, 0, 0, 0);
+  border-radius: 50%;
+  display: block;
+  transition: all 0.5s 0.1s cubic-bezier(0.55, 0, 0.1, 1);
+  z-index: -1;
+}
+
+.add-button:after {
+  content: "";
+  position: absolute;
+  left: 55%;
+  transform: translateX(-50%) scaleY(1) scaleX(1.45);
+  top: 180%;
+  width: 160%;
+  height: 190%;
+  background-color: #45a049;
+  border-radius: 50%;
+  display: block;
+  transition: all 0.5s 0.1s cubic-bezier(0.55, 0, 0.1, 1);
+  z-index: -1;
 }
 
 .add-button:hover {
-  background-color: #45a049;
+  color: #ffffff;
+  border: 1px solid #45a049;
 }
+
+.add-button:hover:before {
+  top: -35%;
+  background-color: #45a049;
+  transform: translateX(-50%) scaleY(1.3) scaleX(0.8);
+}
+
+.add-button:hover:after {
+  top: -45%;
+  background-color: #45a049;
+  transform: translateX(-50%) scaleY(1.3) scaleX(0.8);
+}
+
+
+
 
 .add-icon {
   font-size: 18px;
@@ -416,6 +473,7 @@ export default {
   border-radius: 5px;
   padding: 5px; /* Reducir padding */
   background-color: #fafafa;
+  z-index: 10;
   font-size: 13px; /* Reducir tamaño de fuente global para la lista */
 }
 
