@@ -314,3 +314,22 @@ END //
 DELIMITER ;
 
 select * from Cliente;
+
+
+
+
+#############vista#########
+
+CREATE VIEW vista_reporte_compras AS
+SELECT 
+    m.Nombre as Medicamento,
+    l.Nombre as Laboratorio,
+    e.Fecha_Entrega,
+    de.Cantidad,
+    m.Precio,
+    e.Total
+FROM Medicamento as m
+JOIN Detalle_Entrada as de ON m.ID = de.Medicamento_ID
+JOIN Entrada as e ON de.Entrada_ID = e.ID
+JOIN Laboratorio as l ON e.Laboratorio_ID = l.ID
+ORDER BY e.Fecha_Entrega DESC;

@@ -1,25 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Reporte de Compras</title>
     <style>
-        /* Estilos CSS para el reporte */
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        /* Mantén los estilos que ya tienes y agrega estos */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
         }
-        th {
-            background-color: #f2f2f2;
+        .header img {
+            max-width: 150px;
+            margin-bottom: 10px;
+        }
+        .total-general {
+            margin-top: 20px;
+            text-align: right;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Reporte de Compras</h1>
+    <div class="header">
+        <h1>Reporte de Compras</h1>
+        <p>Botica "Mi Salud"</p>
+    </div>
+    
+    <div class="fecha">
+        Fecha de generación: {{ $fecha }}
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -32,17 +46,23 @@
             </tr>
         </thead>
         <tbody>
+            @php $totalGeneral = 0; @endphp
             @foreach ($entradasMedicamentos as $entrada)
+                @php $totalGeneral += $entrada->Total; @endphp
                 <tr>
                     <td>{{ $entrada->Medicamento }}</td>
                     <td>{{ $entrada->Laboratorio }}</td>
-                    <td>{{ $entrada->Fecha_Entrega }}</td>
+                    <td>{{ \Carbon\Carbon::parse($entrada->Fecha_Entrega)->format('d/m/Y') }}</td>
                     <td>{{ $entrada->Cantidad }}</td>
-                    <td>${{ $entrada->Precio }}</td>
-                    <td>${{ $entrada->Total }}</td>
+                    <td>S/. {{ number_format($entrada->Precio, 2) }}</td>
+                    <td>S/. {{ number_format($entrada->Total, 2) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
+
+    <div class="total-general">
+        Total General: S/. {{ number_format($totalGeneral, 2) }}
+    </div>
 </body>
 </html>
