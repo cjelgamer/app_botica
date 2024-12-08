@@ -13,13 +13,16 @@ import RegistrarVenta from './components/Registrarventa.vue';
 import GenerarReportes from './components/GenerarReportes.vue';
 
 // Configuración global de axios
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+/*axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+axios.defaults.withCredentials = true; 
 let token = document.head.querySelector('meta[name="csrf-token"]');
 if (token) {
     axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
 } else {
     console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
-}
+}*/
+
+
 
 // Hacer axios disponible globalmente
 window.axios = axios;
