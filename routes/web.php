@@ -9,6 +9,7 @@ use App\Http\Controllers\MedicamentoController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\DetalleEntradaController;
 use App\Http\Controllers\CompraController;
+use App\Http\Controllers\ReporteController;
 use App\Models\Medicamento;
 
 // Rutas públicas
@@ -20,7 +21,7 @@ Route::get('/', function () {
 Route::get('/vendedor/login', [VendedorLoginController::class, 'showLoginForm'])->name('vendedor.login');
 Route::post('/vendedor/login', [VendedorLoginController::class, 'login']);
 
-Route::get('/reporte-compras', 'ReporteController@generarReporteCompras')->name('reporte.compras');
+
 
 // Rutas protegidas
 Route::group(['middleware' => ['web']], function () {
@@ -43,9 +44,6 @@ Route::group(['middleware' => ['web']], function () {
    Route::put('/vendedores/{id}/cambiar-contrasena', [VendedorController::class, 'updatePassword']);
    Route::put('/vendedores/{id}/actualizar-estado', [VendedorController::class, 'updateEstado']);
 
-
-
-
    // Rutas para laboratorios
    Route::get('/laboratorios', [LaboratorioController::class, 'index'])->name('laboratorios.index');
    Route::get('/laboratorios/{id}', [LaboratorioController::class, 'show'])->name('laboratorios.show');
@@ -64,6 +62,8 @@ Route::group(['middleware' => ['web']], function () {
    Route::post('/entrada', [EntradaController::class, 'guardarEntrada']);
    Route::post('/detalle-entrada', [DetalleEntradaController::class, 'agregarDetalle']);
 
+   Route::get('/generar-reporte-compras/{tipo}', [ReporteController::class, 'generarReporteCompras'])
+   ->name('reporte.compras.generar');
 
 
 // Ruta para obtener los medicamentos (para búsqueda)

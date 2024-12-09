@@ -49,15 +49,8 @@
         </div>
   
         <!-- Acciones -->
-        <div class="flex flex-col gap-2">
-          <button 
-            @click="cerrarSesion" 
-            class="flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 shadow-sm hover:shadow-md"
-          >
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Cerrar Sesión</span>
-          </button>
-  
+        <div class="flex flex-col gap-5">
+<!-- El botón con su ícono y texto -->
           <button 
             @click="volverDashboard" 
             class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-300"
@@ -66,63 +59,20 @@
             <span>Volver al Dashboard</span>
           </button>
         </div>
+
+        <button class="Btn" @click="cerrarSesion">
+          <svg class="sign" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+            <path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z" fill="white"/>
+          </svg>
+          <div class="text">Cerrar sesión</div>
+        </button>
+
       </div>
     </div>
+
+
 </template>
 
-<style scoped>
-.dashboard-perfil-container {
-  /*height: 100%;
-  /*overflow-y: auto;*/
-  padding: 1rem;
-}
-
-.perfil-content {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.info-row:last-child {
-  border-bottom: none;
-}
-
-.info-label {
-  display: flex;
-  align-items: center;
-  color: #4b5563;
-  font-weight: 500;
-}
-
-.status-indicator {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid white;
-}
-
-@media (max-width: 640px) {
-  .info-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .perfil-content {
-    padding: 1rem;
-  }
-}
-</style>
   <script>
   import axios from 'axios';
   
@@ -184,3 +134,122 @@
   }
   </script>
   
+
+  <style scoped>
+  .dashboard-perfil-container {
+    /*height: 100%;
+    /*overflow-y: auto;*/
+    padding: 1rem;
+  }
+  
+  .perfil-content {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .info-row:last-child {
+    border-bottom: none;
+  }
+  
+  .info-label {
+    display: flex;
+    align-items: center;
+    color: #4b5563;
+    font-weight: 500;
+  }
+  
+  .status-indicator {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+  
+  @media (max-width: 640px) {
+    .info-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    
+    .perfil-content {
+      padding: 1rem;
+    }
+  }
+
+  .Btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 45px;
+  height: 45px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition-duration: .3s;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.199);
+  background-color: rgb(255, 65, 65);
+  margin-top: 20px;
+}
+
+/* Estilo para el ícono */
+.sign {
+  width: 100%;
+  transition-duration: .3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estilo para el texto */
+.text {
+  position: absolute;
+  right: 0%;
+  width: 0%;
+  opacity: 0;
+  color: white;
+  font-size: 1em;
+  font-weight: 600;
+  transition-duration: .3s;
+}
+
+/* Efecto hover para expandir el botón */
+.Btn:hover {
+  width: 225px;
+  border-radius: 40px;
+  transition-duration: .3s;
+}
+
+/* Efecto hover para el ícono */
+.Btn:hover .sign {
+  width: 30%;
+  transition-duration: .3s;
+  padding-left: 20px;
+}
+
+/* Efecto hover para mostrar el texto */
+.Btn:hover .text {
+  opacity: 1;
+  width: 70%;
+  transition-duration: .3s;
+  padding-right: 10px;
+}
+
+/* Efecto al hacer clic */
+.Btn:active {
+  transform: translate(2px, 2px);
+}
+  </style>
