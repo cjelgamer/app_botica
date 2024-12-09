@@ -1,0 +1,86 @@
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Amoxicilina', 'Antibiótico de amplio espectro', 15.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Diclofenaco', 'Antiinflamatorio', 8.50, 0, 'Inyección');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Paracetamol', 'Analgesico y antipirético', 5.00, 0, 'Tabletas');
+
+###
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Ibuprofeno', 'Antiinflamatorio no esteroideo', 7.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Omeprazol', 'Inhibidor de la bomba de protones', 12.00, 0, 'Cápsulas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Loratadina', 'Antihistamínico', 9.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Salbutamol', 'Broncodilatador', 18.50, 0, 'Inhalador');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Metformina', 'Antidiabético oral', 11.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Ranitidina', 'Antiácido', 8.75, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Cetirizina', 'Antihistamínico de segunda generación', 10.25, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Dexametasona', 'Corticoesteroide', 15.50, 0, 'Inyección');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Metronidazol', 'Antibiótico y antiparasitario', 13.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Enalapril', 'Antihipertensivo', 14.25, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Azitromicina', 'Antibiótico macrólido', 22.50, 0, 'Cápsulas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Hidrocortisona', 'Corticoesteroide tópico', 16.75, 0, 'Crema');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Clonazepam', 'Ansiolítico', 19.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Insulina', 'Hormona antidiabética', 45.00, 0, 'Inyección');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Ciprofloxacino', 'Antibiótico fluoroquinolona', 17.25, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Betametasona', 'Corticoesteroide', 13.50, 0, 'Crema');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Losartán', 'Antihipertensivo', 16.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Warfarina', 'Anticoagulante', 20.75, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Alprazolam', 'Ansiolítico', 21.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Amiodarona', 'Antiarrítmico', 25.50, 0, 'Tabletas');
+###
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Laboratorios Andinos', '123456789', 'Av. Las Flores 123, Lima', '1234567');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Farmacéutica del Sur', '987654321', 'Calle Principal 456, Arequipa', '2345678');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('BioMedic Labs', '456123789', 'Jr. Los Pinos 789, Cusco', '3456789');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Salud Vital', '321987654', 'Av. La Salud 101, Trujillo', '4567890');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Laboratorios Santa Fe', '789456123', 'Av. Los Andes 202, Chiclayo', '5678901');
+
