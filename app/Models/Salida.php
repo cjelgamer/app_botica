@@ -11,13 +11,16 @@ class Salida extends Model
     protected $table = 'salida';
     protected $primaryKey = 'ID'; // Clave primaria personalizada
     // Especificar la tabla si no sigue la convención plural
+    public $incrementing = true;
+    protected $keyType = 'int';
+    public $timestamps = false;
 
     // Campos asignables en masa
     protected $fillable = [
         'cliente_id',     // ID del cliente asociado
         'vendedor_id',    // ID del vendedor
         'monto_total',    // Total de la venta
-        'tipo_pago',      // Tipo de pago
+        'Tipo_de_Pago',      // Tipo de pago
         'fecha_venta',    // Fecha de la venta
     ];
 

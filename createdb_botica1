@@ -314,3 +314,8 @@ END //
 DELIMITER ;
 
 select * from Cliente;
+select * from Salida;
+select * from Detalle_Salida;
+select * from Medicamento;
+ALTER TABLE Salida AUTO_INCREMENT = 100000;
+describe Salida;

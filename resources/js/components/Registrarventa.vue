@@ -95,6 +95,14 @@
         <label for="dniCliente">DNI:</label>
         <input v-model="dniCliente" type="text" id="dniCliente" class="input-field" />
       </div>
+      <div class="input-group">
+      <label for="tipoPago">Tipo de Pago:</label>
+      <select v-model="tipoPago" id="tipoPago" class="input-field">
+        <option value="efectivo">Efectivo</option>
+        <option value="tarjeta">Tarjeta de Crédito</option>
+        <option value="aplicativo">Aplicativo (Yape)</option>
+      </select>
+    </div>
     </div>
 
     <!-- Botones de Acción -->
@@ -126,6 +134,7 @@ export default {
       filteredMedicamentos: [], // Medicamentos filtrados en la búsqueda
       searchQuery: "", // Texto de búsqueda
       isModalVisible: false, // Estado del modal 
+      tipoPago: "", // Valor inicial del tipo de pago
     };
   },
   methods: {
@@ -155,6 +164,7 @@ export default {
       }
     },
     /******/
+    
     async fetchAllMedicamentos() {
       try {
         const response = await axios.get("/medicamentos");
@@ -237,6 +247,7 @@ export default {
     async aceptarVenta() {
     try { 
     let montoTotal = 0; // Inicializar el monto total
+    let cantidadTotal =0;
 
     for (const medicamento of this.medicamentos) {
       if (medicamento.cantidad === undefined || medicamento.cantidad === null) {
@@ -252,6 +263,7 @@ export default {
 
       // Calcular el precio total del medicamento y sumar al monto total
       montoTotal += medicamento.Precio * medicamento.cantidad;
+      cantidadTotal += medicamento.cantidad;
     }
     //try {
     const apellidoPaterno = this.separarApellidoPaterno();
@@ -264,29 +276,50 @@ export default {
     apellido_mat: apellidoMaterno   // Enviar como apellido_mat
     });
     const clienteID = clienteResponse.data.cliente.ID;
+    const response = await axios.get('/vendedor/perfil');
+    const vendedorID = response.data.id; // Ajusta al formato de respuesta del backend
     // Paso 1: Crear la venta (Salida)
     const salidaResponse = await axios.post('/salida', {
       cliente_id: clienteID,          // ID del cliente
-      vendedor_id: this.vendedorID,        // ID del vendedor
-      monto_total: this.montoTotal, // Total de la venta
-      tipo_pago: this.tipoPago,            // Tipo de pago
+      vendedor_id: vendedorID,        // ID del vendedor
+      monto_total: montoTotal, // Total de la venta
+      Tipo_de_Pago: this.tipoPago,            // Tipo de pago
       fecha_venta: new Date().toISOString().split('T')[0], // Fecha de la venta
     });
 
     // Obtener el ID de la salida creada
     const salidaID = salidaResponse.data.salida.id;
+    console.log("Salida ID:", salidaID);  // Verifica si el ID está presente
+
     // Paso 2: Crear los detalles de la venta (Medicamentos)
-    for (const medicamento of this.medicamentos) {
-      await axios.post('/detalle-salida', {
-        salida_id: salidaID,               // ID de la venta
-        medicamento_id: medicamento.id,    // ID del medicamento
-        cantidad: medicamento.cantidad || 0,   // Cantidad del medicamento
-        precio_unitario: medicamento.Precio, // Precio unitario del medicamento
-        precio_total: medicamento.Precio * medicamento.cantidad, // Precio total
-      });
+      //const medicamentoID=medicamentos.ID;
+     // Paso 2: Crear los detalles de la venta (Medicamentos)
+     const detallesSalida = this.medicamentos.map(medicamento => {
+     console.log(`ID Medicamento: ${medicamento.ID}, Cantidad: ${medicamento.cantidad}`);
+     return {
+     salida_id: salidaID,
+     medicamento_id: medicamento.ID,
+     cantidad: medicamento.cantidad || 0,
+     };
+    });
+    console.log(detallesSalida);
+    // Enviar los detalles de la venta como un array de objetos
+    try {
+   const response = await axios.post('/detalle-salida', detallesSalida);
+   console.log(response.data);
+   alert("Venta aceptada exitosamente");
+   this.cancelarVenta();  // Limpiar datos de la venta
+    } catch (error) {
+    if (error.response && error.response.data.errors) {
+        // Mostrar los errores de validación
+        console.error("Errores de validación:", error.response.data.errors);
+        alert("Error al crear los detalles de la venta: " + JSON.stringify(error.response.data.errors));
+    } else {
+        console.error("Error al crear los detalles de la venta:", error);
+        alert("Error desconocido al crear los detalles de la venta.");
     }
-    
-    alert("Venta aceptada exitosamente");
+}
+
     this.cancelarVenta(); // Limpiar datos de la venta
     } catch (error) {
     // Intenta obtener el mensaje de error
