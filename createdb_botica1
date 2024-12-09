@@ -1,5 +1,6 @@
 -- Active: 1726805132421@@127.0.0.1@3306@botica1
 DROP DATABASE botica1;
+SHOW PROCESSLIST;
 
 create DATABASE botica1;
 
