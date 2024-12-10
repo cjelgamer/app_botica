@@ -64,6 +64,10 @@ BEGIN
     VALUES ('Salida', CURDATE(), NEW.Salida_ID);
 END$$
 
+
+
+DROP TRIGGER venta_datos_cliente;
+
 DELIMITER ;
 
 /*Insertar en tabla cliente de venta*/
