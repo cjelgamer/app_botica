@@ -286,14 +286,15 @@ export default {
       Tipo_de_Pago: this.tipoPago,            // Tipo de pago
       fecha_venta: new Date().toISOString().split('T')[0], // Fecha de la venta
     });
-
+    console.log("Respuesta del backend al crear salida:", salidaResponse.data);
     // Obtener el ID de la salida creada
-    const salidaID = salidaResponse.data.salida.id;
+    const salidaID = salidaResponse.data.salida.ID;
     console.log("Salida ID:", salidaID);  // Verifica si el ID está presente
 
     // Paso 2: Crear los detalles de la venta (Medicamentos)
       //const medicamentoID=medicamentos.ID;
      // Paso 2: Crear los detalles de la venta (Medicamentos)
+     alert("Venta aceptada exitosamente");
      const detallesSalida = this.medicamentos.map(medicamento => {
      console.log(`ID Medicamento: ${medicamento.ID}, Cantidad: ${medicamento.cantidad}`);
      return {
@@ -307,7 +308,7 @@ export default {
     try {
    const response = await axios.post('/detalle-salida', detallesSalida);
    console.log(response.data);
-   alert("Venta aceptada exitosamente");
+   alert("Detalle venta creados exitosamente");
    this.cancelarVenta();  // Limpiar datos de la venta
     } catch (error) {
     if (error.response && error.response.data.errors) {
