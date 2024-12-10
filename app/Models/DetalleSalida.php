@@ -16,6 +16,7 @@ class DetalleSalida extends Model
     protected $primaryKey = 'ID';
 
     // Indicar si la clave primaria es autoincrementable
+    protected $keyType = 'int';
     public $incrementing = true;
 
     // Desactivar timestamps si no se usan columnas created_at/updated_at
