@@ -90,27 +90,29 @@ Route::group(['middleware' => ['web']], function () {
     Route::post('/cancelar-venta', function () {
         return response()->json(['status' => 'success', 'message' => 'Venta cancelada']);
     });
+
+    Route::prefix('salida')->group(function () {
+        Route::get('/', [SalidaController::class, 'index']);
+        Route::get('/{id}', [SalidaController::class, 'show']);
+        Route::post('/', [SalidaController::class, 'store']);
+        Route::put('/{id}', [SalidaController::class, 'update']);
+        Route::delete('/{id}', [SalidaController::class, 'destroy']);
+    });
+    
+    // Rutas para DetalleSalida
+    Route::prefix('detalle-salida')->group(function () {
+        Route::get('/', [DetalleSalidaController::class, 'index']);
+        Route::get('/{id}', [DetalleSalidaController::class, 'show']);
+        Route::post('/', [DetalleSalidaController::class, 'store']);
+        Route::put('/{id}', [DetalleSalidaController::class, 'update']);
+        Route::delete('/{id}', [DetalleSalidaController::class, 'destroy']);
+    });
+    
+    // Rutas para Cliente
+    Route::prefix('cliente')->group(function () {
+        Route::post('/', [ClienteController::class, 'guardarCliente'])->name('cliente.guardar');
+    });
+
 });
 
 // Rutas para Salida
-Route::prefix('salida')->group(function () {
-    Route::get('/', [SalidaController::class, 'index']);
-    Route::get('/{id}', [SalidaController::class, 'show']);
-    Route::post('/', [SalidaController::class, 'store']);
-    Route::put('/{id}', [SalidaController::class, 'update']);
-    Route::delete('/{id}', [SalidaController::class, 'destroy']);
-});
-
-// Rutas para DetalleSalida
-Route::prefix('detalle-salida')->group(function () {
-    Route::get('/', [DetalleSalidaController::class, 'index']);
-    Route::get('/{id}', [DetalleSalidaController::class, 'show']);
-    Route::post('/', [DetalleSalidaController::class, 'store']);
-    Route::put('/{id}', [DetalleSalidaController::class, 'update']);
-    Route::delete('/{id}', [DetalleSalidaController::class, 'destroy']);
-});
-
-// Rutas para Cliente
-Route::prefix('cliente')->group(function () {
-    Route::post('/', [ClienteController::class, 'guardarCliente'])->name('cliente.guardar');
-});
