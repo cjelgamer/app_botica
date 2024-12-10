@@ -52,7 +52,7 @@ export default {
                     if (response.data.role === 'Admin') {
                         this.$router.push({ name: 'AdminDashboard' });
                     } else if (response.data.role === 'Vendedor') {
-                        alert('Inicio de vendedor exitoso.');
+                        this.$router.push('/vendedor-dashboard');
                     }
                 }
             } catch (error) {

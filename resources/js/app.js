@@ -11,6 +11,7 @@ import PerfilVendedor from './components/PerfilVendedor.vue';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import RegistrarVenta from './components/Registrarventa.vue';
 import GenerarReportes from './components/GenerarReportes.vue';
+import VendedorDashboard from "/resources/js/components/VendedorDashboard.vue";
 
 // Configuración global de axios
 /*axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -30,6 +31,7 @@ window.axios = axios;
 // Define las rutas
 const routes = [
     { path: '/', name: 'LoginForm', component: LoginForm },
+    { path: '/vendedor/login', name: 'VendedorLogin', component: LoginForm },
     {
         path: '/admin-dashboard',
         name: 'AdminDashboard',
@@ -43,7 +45,31 @@ const routes = [
             { path: 'perfil', name: 'PerfilVendedor', component: PerfilVendedor },
             { path: 'generar-reportes', name: 'GenerarReportes', component: GenerarReportes }
         ]
-    }
+    },
+
+    {
+        path: '/vendedor-dashboard',
+        name: 'VendedorDashboard',
+        component: VendedorDashboard,
+        children: [
+            { 
+                path: 'medicamentos', 
+                name: 'VendedorMedicamento', 
+                component: Medicamento 
+            },
+            { 
+                path: 'registrar-venta', 
+                name: 'VendedorRegistrarVenta', 
+                component: RegistrarVenta 
+            },
+            { 
+                path: 'perfil', 
+                name: 'VendedorPerfil', 
+                component: PerfilVendedor 
+            }
+        ]
+    }    
+
 ];
 
 // Configura el router
