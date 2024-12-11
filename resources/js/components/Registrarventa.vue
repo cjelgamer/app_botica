@@ -104,7 +104,7 @@
       </select>
     </div>
     </div>
-
+     
     <!-- Botones de Acción -->
     <div class="buttons-container">
       <button @click="aceptarVenta" class="action-btn accept-btn">Aceptar Venta</button>
@@ -119,52 +119,36 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      medicamentos: [], // Lista de medicamentos seleccionados
-      nuevoMedicamento: {
-        id: null,
-        Nombre: '',
-        Stock: 0,
-        cantidad: 1,
-        Precio: 0
-      },
-      nombreCliente: "", // Nombre del cliente
-      apellidoCliente: "", // Campo para capturar ambos apellidos juntos
-      dniCliente: "", // DNI del cliente
-      allMedicamentos: [], // Todos los medicamentos disponibles para buscar
-      filteredMedicamentos: [], // Medicamentos filtrados en la búsqueda
-      searchQuery: "", // Texto de búsqueda
-      isModalVisible: false, // Estado del modal 
-      tipoPago: "", // Valor inicial del tipo de pago
+      medicamentos: [], 
+      nombreCliente: "",
+      apellidoCliente: "",
+      dniCliente: "",
+      allMedicamentos: [],
+      filteredMedicamentos: [],
+      searchQuery: "",
+      isModalVisible: false,
+      tipoPago: "",
+      salidavalor: false
     };
   },
   methods: {
     openModal() {
-      this.isModalVisible = true; // Muestra el modal
-      this.fetchAllMedicamentos(); // Cargar medicamentos cuando se abre el modal
+      this.isModalVisible = true; 
+      this.fetchAllMedicamentos();
     },
     closeModal() {
-      this.isModalVisible = false; // Oculta el modal
+      this.isModalVisible = false; 
     },
-    // Función para buscar medicamentos
     async searchMedicamentos() {
       try {
         if (this.searchQuery.length > 2) {
-          const response = await axios.get('/medicamentos', {
-            params: {
-              search: this.searchQuery
-            }
-          });
-          this.medicamentos = response.data.map(medicamento => ({
-            ...medicamento,
-            cantidad: 1, // Inicializa la cantidad en 1
-          }));
+          const response = await axios.get('/medicamentos', { params: { search: this.searchQuery } });
+          this.filteredMedicamentos = response.data;
         }
       } catch (error) {
         console.error('Error al buscar medicamentos:', error);
       }
     },
-    /******/
-    
     async fetchAllMedicamentos() {
       try {
         const response = await axios.get("/medicamentos");
@@ -174,67 +158,38 @@ export default {
         console.error("Error al obtener medicamentos:", error);
       }
     },
-    filterMedicamentos() {
-      this.filteredMedicamentos = this.allMedicamentos.filter((medicamento) =>
-        medicamento.Nombre.toLowerCase().includes(this.searchQuery.toLowerCase())
-      );
+    addMedicamento(medicamento) {
+      const medicamentoExistente = this.medicamentos.find(m => m.Nombre === medicamento.Nombre);
+      if (medicamentoExistente) {
+        medicamentoExistente.cantidad += medicamento.cantidad;
+      } else {
+        this.medicamentos.push({ ...medicamento, cantidad: 1 });
+      }
+      this.closeModal();
     },
-    // Función para agregar un medicamento a la venta
-    addMedicamento(nuevoMedicamento) {
-      // Verificar si el medicamento ya existe en la lista
-    const medicamentoExistente = this.medicamentos.find(
-      (medicamento) => medicamento.Nombre === nuevoMedicamento.Nombre
-    );
-
-    if (medicamentoExistente) {
-      // Si existe, solo actualiza la cantidad
-      medicamentoExistente.cantidad += nuevoMedicamento.cantidad;
-    } else {
-      // Si no existe, agrega un nuevo medicamento
-      this.medicamentos.push({ ...nuevoMedicamento,
-      cantidad: nuevoMedicamento.cantidad || 1, // Por defecto, 1
-      Precio: nuevoMedicamento.Precio || 0 // Por defecto, 0
-      });
-    }
-
-    // Limpiar el formulario o modal (opcional)
-    this.nuevoMedicamento = {
-      id: null,
-      Nombre: '',
-      Stock: 0,
-      cantidad: 1,
-      Precio: 0
-    };
-      this.closeModal(); // Cerrar el modal después de agregarlo
-    },
-    // Función para actualizar la cantidad de un medicamento
     updateCantidad(medicamento, delta) {
-      if (medicamento.cantidad + delta <= medicamento.Stock && medicamento.cantidad + delta >= 1) {
+      if (medicamento.cantidad + delta > 0 && medicamento.cantidad + delta <= medicamento.Stock) {
         medicamento.cantidad += delta;
       }
     },
-
-    // Función para calcular el total
-    updateTotal() {
-      // Se puede agregar aquí lógica para recalcular el total de la venta si es necesario.
-    },
-    // Calcular el precio total de un medicamento
     calcularPrecioTotal(medicamento) {
-      if (medicamento.cantidad > medicamento.Stock) {
-        medicamento.cantidad = medicamento.Stock;
-      } else if (medicamento.cantidad < 1) {
-        medicamento.cantidad = 1;
-      }
+      if (medicamento.cantidad < 1) medicamento.cantidad = 1;
+      if (medicamento.cantidad > medicamento.Stock) medicamento.cantidad = medicamento.Stock;
     },
-
+    
     separarApellidoPaterno() {
     if (this.apellidoCliente.trim() !== "") {
+      const apellidos = this.apellidoCliente.trim().split(" ");
+      this.apellidoPaterno = apellidos[0] || ""; // Primer apellido
+      this.apellidoMaterno = apellidos[1] || ""; // Segundo apellido si existe
+    } else {
+      this.apellidoPaterno = "";
+      this.apellidoMaterno = "";
     const apellidos = this.apellidoCliente.trim().split(" ");
         return apellidos[0] || "";  // Primer apellido
      }
         return "Apellido Paterno Requerido"; 
      },
-
     separarApellidoMaterno() {
      if (this.apellidoCliente.trim() !== "") {
     const apellidos = this.apellidoCliente.trim().split(" ");
@@ -243,138 +198,93 @@ export default {
     return "Apellido Materno Requerido"
     },
     // Función para aceptar la venta
-    
     async aceptarVenta() {
-    try { 
+  try {
     let montoTotal = 0; // Inicializar el monto total
-    let cantidadTotal =0;
+    let cantidadTotal = 0;
 
+    // Verificar la cantidad de cada medicamento
     for (const medicamento of this.medicamentos) {
       if (medicamento.cantidad === undefined || medicamento.cantidad === null) {
         alert(`El medicamento ${medicamento.Nombre} no tiene una cantidad válida.`);
         return;
       }
       medicamento.cantidad = Number(medicamento.cantidad) || 0; // Convertir a número
-      
+
+      // Validar que la cantidad sea mayor a 0
       if (medicamento.cantidad <= 0) {
         alert(`La cantidad del medicamento ${medicamento.Nombre} debe ser mayor a 0.`);
         return;
       }
 
-      // Calcular el precio total del medicamento y sumar al monto total
+      // Calcular el precio total del medicamento y sumarlo al monto total
       montoTotal += medicamento.Precio * medicamento.cantidad;
       cantidadTotal += medicamento.cantidad;
     }
-    //try {
+
+    // Obtener apellidos del cliente
     const apellidoPaterno = this.separarApellidoPaterno();
     const apellidoMaterno = this.separarApellidoMaterno();
 
+    // Registrar el cliente
     const clienteResponse = await axios.post('/cliente', {
-    dni: this.dniCliente,
-    nombre: this.nombreCliente,
-    apellido_pat: apellidoPaterno,  // Enviar como apellido_pat
-    apellido_mat: apellidoMaterno   // Enviar como apellido_mat
+      dni: this.dniCliente,
+      nombre: this.nombreCliente,
+      apellido_pat: apellidoPaterno,
+      apellido_mat: apellidoMaterno,
     });
+
     const clienteID = clienteResponse.data.cliente.ID;
-    const response = await axios.get('/vendedor/perfil');
-    const vendedorID = response.data.id; // Ajusta al formato de respuesta del backend
-    // Paso 1: Crear la venta (Salida)
+
+    // Obtener el vendedor
+    const vendedorResponse = await axios.get('/vendedor/perfil');
+    const vendedorID = vendedorResponse.data.id;
+
+    // Crear la venta (Salida)
     const salidaResponse = await axios.post('/salida', {
-      cliente_id: clienteID,          // ID del cliente
-      vendedor_id: vendedorID,        // ID del vendedor
-      monto_total: montoTotal, // Total de la venta
-      Tipo_de_Pago: this.tipoPago,            // Tipo de pago
-      fecha_venta: new Date().toISOString().split('T')[0], // Fecha de la venta
+      cliente_id: clienteID,
+      vendedor_id: vendedorID,
+      monto_total: montoTotal,
+      Tipo_de_Pago: this.tipoPago,
+      fecha_venta: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
     });
-    console.log("Respuesta del backend al crear salida:", salidaResponse.data);
-    // Obtener el ID de la salida creada
+
     const salidaID = salidaResponse.data.salida.ID;
-    console.log("Salida ID:", salidaID);  // Verifica si el ID está presente
+    console.log("Respuesta del backend al crear salida:", salidaResponse.data);
 
-    // Paso 2: Crear los detalles de la venta (Medicamentos)
-      //const medicamentoID=medicamentos.ID;
-     // Paso 2: Crear los detalles de la venta (Medicamentos)
-     alert("Venta aceptada exitosamente");
-     const detallesSalida = this.medicamentos.map(medicamento => {
-     console.log(`ID Medicamento: ${medicamento.ID}, Cantidad: ${medicamento.cantidad}`);
-     return {
-     salida_id: salidaID,
-     medicamento_id: medicamento.ID,
-     cantidad: medicamento.cantidad || 0,
-     };
+    // Crear los detalles de la venta (Medicamentos)
+    const detallesSalida = this.medicamentos.map(medicamento => {
+      console.log(`ID Medicamento: ${medicamento.id}, Cantidad: ${medicamento.cantidad}`);
+      return {
+        salida_id: salidaID,
+        medicamento_id: medicamento.id,
+        cantidad: medicamento.cantidad || 0,
+      };
     });
-    console.log(detallesSalida);
-    // Enviar los detalles de la venta como un array de objetos
-    try {
-    const response = await axios.post('/detalle_salida', {
-        detalles_salida: detallesSalida // Envolvemos el array en un objeto
-      });
-      console.log(response.data);
-      console.error('Error al registrar detalle:', error.response?.data || error.message);
-   alert("Detalle venta creados exitosamente");
-   this.cancelarVenta();  // Limpiar datos de la venta
-    } catch (error) {
-    if (error.response && error.response.data.errors) {
-        // Mostrar los errores de validación
-        console.error("Errores de validación:", error.response.data.errors);
-        alert("Error al crear los detalles de la venta: " + JSON.stringify(error.response.data.errors));
-    } else {
-        console.error("Error al crear los detalles de la venta:", error);
-        alert("Error desconocido al crear los detalles de la venta.");
-    }
-}
 
-    this.cancelarVenta(); // Limpiar datos de la venta
-    } catch (error) {
-    // Intenta obtener el mensaje de error
-    let errorMessage = "Hubo un error al procesar la venta";
-  
-    // Si el error es de Axios y tiene una respuesta del servidor
-    if (error.response && error.response.data) {
-    errorMessage = error.response.data.message || "Error en la respuesta del servidor";
-    } else if (error.message) {
-    // Si el error es genérico
-    errorMessage = error.message;
-    }
+    // Enviar los detalles de la venta al backend
+    await axios.post('/detalle_salida', { detalles_salida: detallesSalida });
 
-     // Muestra el mensaje del error en la consola y en el alert
+    // Confirmación exitosa
+    this.salidavalor = true;
+    alert("Venta aceptada exitosamente");
+    this.limpiarFormulario(); // Limpiar los campos después de aceptar la venta
+
+  } catch (error) {
     console.error("Error al procesar la venta:", error);
-    alert(errorMessage);
-    }
-    },
+    alert("Hubo un error al procesar la venta. Por favor, intente nuevamente.");
+  }
+},
 
-
-    // Función para cancelar la venta
-    async cancelarVenta() {
-      try {
-        const response = await axios.post('/cancelar-venta');
-        this.medicamentos = [];
-        this.nombreCliente = '';
-        this.apellidoCliente = '';
-        this.dniCliente = '';
-        alert(response.data.message);
-      } catch (error) {
-        console.error('Error al cancelar la venta:', error);
-      }
-    },
-    
-    removeMedicamento(medicamentoAEliminar) {
-    const medicamentoExistente = this.medicamentos.find(
-    (medicamento) => medicamento.Nombre === medicamentoAEliminar.Nombre
-    );
-
-    if (medicamentoExistente) {
-      if (medicamentoExistente.cantidad > 1) {
-      // Si la cantidad es mayor a 1, reducimos la cantidad
-      medicamentoExistente.cantidad -= 1;
-      } else {
-      // Si es 1, eliminamos el medicamento de la lista
-      this.medicamentos = this.medicamentos.filter(
-        (medicamento) => medicamento.Nombre !== medicamentoAEliminar.Nombre
-      );
-      }
-    }
-   }
+limpiarFormulario() {
+  // Limpiar la lista de medicamentos, información del cliente y otros campos
+  this.medicamentos = [];
+  this.nombreCliente = "";
+  this.apellidoCliente = "";
+  this.dniCliente = "";
+  this.tipoPago = "";
+  this.salidavalor = false;
+}
 
   }
 };

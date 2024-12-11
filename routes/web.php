@@ -91,21 +91,14 @@ Route::group(['middleware' => ['web']], function () {
         return response()->json(['status' => 'success', 'message' => 'Venta cancelada']);
     });
 
+    // Ruta para crear una venta
     Route::prefix('salida')->group(function () {
-        Route::get('/', [SalidaController::class, 'index']);
-        Route::get('/{id}', [SalidaController::class, 'show']);
-        Route::post('/', [SalidaController::class, 'store']);
-        Route::put('/{id}', [SalidaController::class, 'update']);
-        Route::delete('/{id}', [SalidaController::class, 'destroy']);
+    Route::post('/', [SalidaController::class, 'store']); // Crear una venta
     });
-    
-    // Rutas para DetalleSalida
+
+    // Ruta para crear un detalle de venta
     Route::prefix('detalle_salida')->group(function () {
-        Route::get('/', [DetalleSalidaController::class, 'index']);
-        Route::get('/{id}', [DetalleSalidaController::class, 'show']);
-        Route::post('/', [DetalleSalidaController::class, 'store']);
-        Route::put('/{id}', [DetalleSalidaController::class, 'update']);
-        Route::delete('/{id}', [DetalleSalidaController::class, 'destroy']);
+    Route::post('/', [DetalleSalidaController::class, 'store']); // Crear un detalle de venta
     });
     
     // Rutas para Cliente

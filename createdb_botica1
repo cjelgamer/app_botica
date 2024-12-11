@@ -1,25 +1,10 @@
 -- Active: 1726805132421@@127.0.0.1@3306@botica1
 DROP DATABASE botica1;
-SHOW PROCESSLIST;
-DROP DATABASE IF EXISTS botica1;
-
---php artisan migrate:fresh--
--- Primero desactivar las restricciones de clave foránea
-SET FOREIGN_KEY_CHECKS = 0;
-
--- Obtener y ejecutar los comandos DROP para todas las tablas
-SELECT CONCAT('DROP TABLE IF EXISTS ', GROUP_CONCAT(table_name), ';')
-FROM information_schema.tables
-WHERE table_schema = 'botica1';
-
--- Volver a activar las restricciones de clave foránea
-SET FOREIGN_KEY_CHECKS = 1;
 
 create DATABASE botica1;
 
 use botica1;
 
-DROP TABLE IF EXISTS Medicamento;
 CREATE TABLE Medicamento (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Nombre VARCHAR(255),
@@ -45,7 +30,6 @@ ALTER TABLE Medicamento ADD INDEX idx_precio (Precio);
 
 #########################################
 
-DROP TABLE IF EXISTS Laboratorio;
 CREATE TABLE Laboratorio (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Nombre VARCHAR(255),
@@ -54,7 +38,6 @@ CREATE TABLE Laboratorio (
   RUC VARCHAR(20)
 );
 
-DROP TABLE IF EXISTS Entrada;
 CREATE TABLE Entrada (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Fecha_Entrega DATE,
@@ -63,8 +46,6 @@ CREATE TABLE Entrada (
   FOREIGN KEY (Laboratorio_ID) REFERENCES Laboratorio(ID)
 );
 
-
-DROP TABLE IF EXISTS Detalle_entrada;
 CREATE TABLE Detalle_Entrada (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Entrada_ID INT,
@@ -75,8 +56,6 @@ CREATE TABLE Detalle_Entrada (
 );
 
 
-
-DROP TABLE IF EXISTS Movimiento;
 CREATE TABLE Movimiento (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Tipo VARCHAR(50),
@@ -87,8 +66,6 @@ CREATE TABLE Movimiento (
   FOREIGN KEY (Salida_ID) REFERENCES Salida(ID)
 );
 
-
-DROP TABLE IF EXISTS Detalle_salida;
 CREATE TABLE Detalle_Salida (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Salida_ID INT,
@@ -98,8 +75,6 @@ CREATE TABLE Detalle_Salida (
   FOREIGN KEY (Medicamento_ID) REFERENCES Medicamento(ID)
 );
 
-
-DROP TABLE IF EXISTS salida;
 CREATE TABLE Salida (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Vendedor_ID INT,
@@ -111,8 +86,6 @@ CREATE TABLE Salida (
   FOREIGN KEY (Cliente_ID) REFERENCES Cliente(ID)
 );
 
-
-DROP TABLE IF EXISTS Vendedor;
 CREATE TABLE Vendedor (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Nombre VARCHAR(255),
@@ -122,8 +95,6 @@ CREATE TABLE Vendedor (
   Contraseña VARCHAR(255)
 );
 
-
-DROP TABLE IF EXISTS Cliente;
 CREATE TABLE Cliente (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   DNI VARCHAR(20),
@@ -132,7 +103,7 @@ CREATE TABLE Cliente (
   Apellido_Mat VARCHAR(255)
 );
 
-DROP TABLE IF EXISTS History;
+
 CREATE TABLE History (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Movimiento_ID INT,
@@ -145,7 +116,7 @@ CREATE TABLE History (
   FOREIGN KEY (Movimiento_ID) REFERENCES Movimiento(ID)
 );
 
-DROP TABLE IF EXISTS caja;
+
 CREATE TABLE Caja (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Fecha DATE,
@@ -157,3 +128,192 @@ CREATE TABLE Caja (
 ALTER TABLE Caja
 ADD COLUMN Vendedor_ID INT,
 ADD FOREIGN KEY (Vendedor_ID) REFERENCES Vendedor(ID);
+
+select * from Laboratorio;  
+INSERT INTO Laboratorio VALUES (NULL, 'Lab1', '987654321', 'Jr.Drugs', '20123456789');
+
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*********************************DISPARADORES*****************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+
+
+
+CREATE TRIGGER after_insert_movimiento
+AFTER INSERT ON Movimiento
+FOR EACH ROW
+BEGIN
+    INSERT INTO History (Movimiento_ID, Tipo_Operacion, Tipo, Fecha_movimiento, Entrada_ID, Salida_ID)
+    VALUES (NEW.ID, 'INSERT', NEW.Tipo, NEW.Fecha_movimiento, NEW.Entrada_ID, NEW.Salida_ID);
+END;
+
+
+CREATE TRIGGER after_update_movimiento
+AFTER UPDATE ON Movimiento
+FOR EACH ROW
+BEGIN
+    INSERT INTO History (Movimiento_ID, Tipo_Operacion, Tipo, Fecha_movimiento, Entrada_ID, Salida_ID)
+    VALUES (NEW.ID, 'UPDATE', NEW.Tipo, NEW.Fecha_movimiento, NEW.Entrada_ID, NEW.Salida_ID);
+END;
+
+
+CREATE TRIGGER after_delete_movimiento
+AFTER DELETE ON Movimiento
+FOR EACH ROW
+BEGIN
+    INSERT INTO History (Movimiento_ID, Tipo_Operacion, Tipo, Fecha_movimiento, Entrada_ID, Salida_ID)
+    VALUES (OLD.ID, 'DELETE', OLD.Tipo, OLD.Fecha_movimiento, OLD.Entrada_ID, OLD.Salida_ID);
+END;
+
+
+DELIMITER $$
+
+CREATE TRIGGER actualizar_stock_entrada
+AFTER INSERT ON Detalle_Entrada
+FOR EACH ROW
+BEGIN
+    -- Actualizar el stock del medicamento correspondiente
+    UPDATE Medicamento
+    SET Stock = Stock + NEW.Cantidad
+    WHERE ID = NEW.Medicamento_ID;
+
+    -- Insertar el movimiento en la tabla Movimiento
+    INSERT INTO Movimiento (Tipo, Fecha_movimiento, Entrada_ID)
+    VALUES ('Ingreso', CURDATE(), NEW.Entrada_ID);
+END$$
+
+DELIMITER ;
+
+
+
+DELIMITER $$
+
+CREATE TRIGGER actualizar_stock_salida
+AFTER INSERT ON Detalle_Salida
+FOR EACH ROW
+BEGIN
+    -- Actualizar el stock del medicamento correspondiente
+    UPDATE Medicamento
+    SET Stock = Stock - NEW.Cantidad
+    WHERE ID = NEW.Medicamento_ID;
+
+    -- Insertar el movimiento en la tabla Movimiento
+    INSERT INTO Movimiento (Tipo, Fecha_movimiento, Salida_ID)
+    VALUES ('Salida', CURDATE(), NEW.Salida_ID);
+END$$
+
+DELIMITER ;
+
+/*Insertar en tabla cliente de venta*/
+DELIMITER $$
+CREATE TRIGGER venta_datos_cliente
+AFTER INSERT ON Cliente
+FOR EACH ROW
+    INSERT INTO Cliente (DNI, Nombre, Apellido_Pat,Apellido_Mat)
+    VALUES (NEW.ID, NEW.Nombre, NEW.Apellido_Pat,NEW.Apellido_Mat);
+BEGIN
+END$$
+
+DELIMITER ;
+
+#DROP TRIGGER IF EXISTS actualizar_stock_entrada;
+
+
+
+-- Insertar detalles de una entrada
+INSERT INTO Detalle_Entrada (Entrada_ID, Medicamento_ID, Cantidad)
+VALUES (1, 1, 100);
+
+INSERT INTO Detalle_Entrada (Entrada_ID, Medicamento_ID, Cantidad)
+VALUES (1, 2, 50);
+
+-- Verificar actualizaciones en Medicamento
+SELECT * FROM Medicamento;
+
+-- Verificar inserciones en Movimiento
+SELECT * FROM Movimiento;
+
+SELECT * from history;
+
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*********************************PRUEBAS*****************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Amoxicilina', 'Antibiótico de amplio espectro', 15.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Diclofenaco', 'Antiinflamatorio', 8.50, 0, 'Inyección');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Paracetamol', 'Analgesico y antipirético', 5.00, 0, 'Tabletas');
+
+
+
+
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Laboratorios Andinos', '123456789', 'Av. Las Flores 123, Lima', '1234567');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Farmacéutica del Sur', '987654321', 'Calle Principal 456, Arequipa', '2345678');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('BioMedic Labs', '456123789', 'Jr. Los Pinos 789, Cusco', '3456789');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Salud Vital', '321987654', 'Av. La Salud 101, Trujillo', '4567890');
+
+INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
+VALUES ('Laboratorios Santa Fe', '789456123', 'Av. Los Andes 202, Chiclayo', '5678901');
+
+
+##################################################################################
+##################################################################################
+###########################Disparadores###########################################
+##################################################################################
+##################################################################################
+
+DELIMITER //
+
+CREATE TRIGGER tr_ActualizarCaja AFTER INSERT ON Salida
+FOR EACH ROW
+BEGIN
+  DECLARE saldo_inicial DECIMAL(10, 2);
+  DECLARE fecha_actual DATE;
+  
+  SET fecha_actual = CURDATE();
+  
+  -- Verificar si ya existe un registro para la fecha actual y el vendedor específico
+  SELECT Saldo_Final INTO saldo_inicial 
+  FROM Caja 
+  WHERE Fecha = fecha_actual AND Vendedor_ID = NEW.Vendedor_ID;
+  
+  IF saldo_inicial IS NULL THEN
+    -- Si no existe un registro, insertar uno nuevo
+    INSERT INTO Caja (Fecha, Saldo_Inicial, Saldo_Final, Vendedor_ID)
+    VALUES (fecha_actual, NEW.Monto_Total, NEW.Monto_Total, NEW.Vendedor_ID);
+  ELSE
+    -- Si existe, actualizar el saldo final
+    UPDATE Caja 
+    SET Saldo_Final = Saldo_Final + NEW.Monto_Total
+    WHERE Fecha = fecha_actual AND Vendedor_ID = NEW.Vendedor_ID;
+  END IF;
+END //
+
+DELIMITER ;
+
+select * from Cliente;
+select * from Salida ;
+select * from Detalle_Salida ;
+describe Detalle_Salida;
