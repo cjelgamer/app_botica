@@ -92,4 +92,5 @@ class LaboratorioController extends Controller
             return response()->json(['error' => 'Error al eliminar laboratorio', 'message' => $e->getMessage()], 500);
         }
     }
+
 }

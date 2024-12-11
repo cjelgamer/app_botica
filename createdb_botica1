@@ -1,10 +1,25 @@
--- Active: 1731434192460@@127.0.0.1@3306
+-- Active: 1726805132421@@127.0.0.1@3306@botica1
 DROP DATABASE botica1;
+SHOW PROCESSLIST;
+DROP DATABASE IF EXISTS botica1;
+
+--php artisan migrate:fresh--
+-- Primero desactivar las restricciones de clave foránea
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Obtener y ejecutar los comandos DROP para todas las tablas
+SELECT CONCAT('DROP TABLE IF EXISTS ', GROUP_CONCAT(table_name), ';')
+FROM information_schema.tables
+WHERE table_schema = 'botica1';
+
+-- Volver a activar las restricciones de clave foránea
+SET FOREIGN_KEY_CHECKS = 1;
 
 create DATABASE botica1;
 
 use botica1;
 
+DROP TABLE IF EXISTS Medicamento;
 CREATE TABLE Medicamento (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Nombre VARCHAR(255),
@@ -14,6 +29,23 @@ CREATE TABLE Medicamento (
   Tipo VARCHAR(100)
 );
 
+
+###################INDICES################
+
+-- Índice FULLTEXT para búsquedas de texto en nombre y descripción
+ALTER TABLE Medicamento ADD FULLTEXT INDEX idx_medicamento_search (Nombre, Descripcion);
+
+-- Índice compuesto para filtros comunes (tipo y stock)
+ALTER TABLE Medicamento ADD INDEX idx_tipo_stock (Tipo, Stock);
+
+-- Índice para ordenamiento por precio
+ALTER TABLE Medicamento ADD INDEX idx_precio (Precio);
+
+
+
+#########################################
+
+DROP TABLE IF EXISTS Laboratorio;
 CREATE TABLE Laboratorio (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Nombre VARCHAR(255),
@@ -22,6 +54,7 @@ CREATE TABLE Laboratorio (
   RUC VARCHAR(20)
 );
 
+DROP TABLE IF EXISTS Entrada;
 CREATE TABLE Entrada (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Fecha_Entrega DATE,
@@ -30,6 +63,8 @@ CREATE TABLE Entrada (
   FOREIGN KEY (Laboratorio_ID) REFERENCES Laboratorio(ID)
 );
 
+
+DROP TABLE IF EXISTS Detalle_entrada;
 CREATE TABLE Detalle_Entrada (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Entrada_ID INT,
@@ -40,6 +75,8 @@ CREATE TABLE Detalle_Entrada (
 );
 
 
+
+DROP TABLE IF EXISTS Movimiento;
 CREATE TABLE Movimiento (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Tipo VARCHAR(50),
@@ -50,6 +87,8 @@ CREATE TABLE Movimiento (
   FOREIGN KEY (Salida_ID) REFERENCES Salida(ID)
 );
 
+
+DROP TABLE IF EXISTS Detalle_salida;
 CREATE TABLE Detalle_Salida (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Salida_ID INT,
@@ -59,6 +98,8 @@ CREATE TABLE Detalle_Salida (
   FOREIGN KEY (Medicamento_ID) REFERENCES Medicamento(ID)
 );
 
+
+DROP TABLE IF EXISTS salida;
 CREATE TABLE Salida (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Vendedor_ID INT,
@@ -70,6 +111,8 @@ CREATE TABLE Salida (
   FOREIGN KEY (Cliente_ID) REFERENCES Cliente(ID)
 );
 
+
+DROP TABLE IF EXISTS Vendedor;
 CREATE TABLE Vendedor (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Nombre VARCHAR(255),
@@ -79,6 +122,8 @@ CREATE TABLE Vendedor (
   Contraseña VARCHAR(255)
 );
 
+
+DROP TABLE IF EXISTS Cliente;
 CREATE TABLE Cliente (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   DNI VARCHAR(20),
@@ -87,7 +132,7 @@ CREATE TABLE Cliente (
   Apellido_Mat VARCHAR(255)
 );
 
-
+DROP TABLE IF EXISTS History;
 CREATE TABLE History (
   ID INT PRIMARY KEY AUTO_INCREMENT,
   Movimiento_ID INT,
@@ -99,5 +144,16 @@ CREATE TABLE History (
   Fecha_Operacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (Movimiento_ID) REFERENCES Movimiento(ID)
 );
-select * from Laboratorio;
-INSERT INTO Laboratorio VALUES (NULL, 'Lab1', '987654321', 'Jr.Drugs', '20123456789');
+
+DROP TABLE IF EXISTS caja;
+CREATE TABLE Caja (
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  Fecha DATE,
+  Saldo_Inicial DECIMAL(10, 2),
+  Saldo_Final DECIMAL(10, 2)
+);
+
+#modificaciones para tabla caja :
+ALTER TABLE Caja
+ADD COLUMN Vendedor_ID INT,
+ADD FOREIGN KEY (Vendedor_ID) REFERENCES Vendedor(ID);

@@ -70,4 +70,5 @@ class MedicamentoController extends Controller
         $medicamento->delete();
         return response()->json(['message' => 'Medicamento eliminado']);
     }
+
 }
