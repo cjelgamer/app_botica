@@ -7,60 +7,75 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #ffffff;
+            color: #2e2e2e;
         }
         .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
-        }
-        .header img {
-            max-width: 150px;
-            margin-bottom: 10px;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #4caf50;
+        padding-bottom: 10px;
         }
         .header h1 {
-            color: #333;
-            margin-bottom: 5px;
+            color: #ffffff;
+            background-color: #2d6a4f; /* Fondo verde */
+            padding: 10px; /* Espaciado interno para el cuadro */
+            border-radius: 3px; /* Bordes redondeados */
+            margin: 0; /* Elimina el margen adicional */
         }
         .fecha {
             margin-bottom: 20px;
-            color: #666;
+            color: #2e2e2e;
+            font-size: 0.9em;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
             margin-bottom: 20px;
+            background-color: #ffffff;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #2d6a4f;
+            padding: 5px;
             text-align: left;
         }
         th {
-            background-color: #f4f4f4;
+            background-color: #2d6a4f;
+            color: #ffffff;
         }
         tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: #f2f2f2;
         }
         .total-general {
             margin-top: 20px;
             text-align: right;
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: 1em;
             padding: 10px;
-            border-top: 2px solid #333;
+            border-top: 2px solid #2d6a4f;
+            color: #2e2e2e;
         }
         .periodo-reporte {
             text-align: center;
-            color: #666;
+            color: #2e2e2e;
             margin-bottom: 20px;
             font-style: italic;
+            font-size: 1em;
+        }
+        a {
+            color: #2d6a4f;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="header">
+        <img src="/images/logo_c.png" alt="Sanar y sanar hasta morir" class="logo">
+
         <h1>
             @switch($tipo)
                 @case('semana')
@@ -75,7 +90,7 @@
         </h1>
         <p>Botica "Mi Salud"</p>
     </div>
-    
+
     <div class="fecha">
         Fecha de generación: {{ $fecha }}
     </div>
@@ -100,7 +115,6 @@
                 <th>Laboratorio</th>
                 <th>Fecha de Entrega</th>
                 <th>Cantidad</th>
-                <th>Precio Unitario</th>
                 <th>Total</th>
             </tr>
         </thead>
@@ -119,7 +133,6 @@
                     <td>{{ $entrada->Laboratorio }}</td>
                     <td>{{ \Carbon\Carbon::parse($entrada->Fecha_Entrega)->format('d/m/Y') }}</td>
                     <td style="text-align: center;">{{ $entrada->Cantidad }}</td>
-                    <td style="text-align: right;">S/. {{ number_format($entrada->Precio, 2) }}</td>
                     <td style="text-align: right;">S/. {{ number_format($entrada->Total, 2) }}</td>
                 </tr>
             @endforeach
@@ -128,7 +141,7 @@
             <tr>
                 <td colspan="3" style="text-align: right;"><strong>Totales:</strong></td>
                 <td style="text-align: center;"><strong>{{ $totalMedicamentos }}</strong></td>
-                <td colspan="2" style="text-align: right;"><strong>S/. {{ number_format($totalGeneral, 2) }}</strong></td>
+                <td style="text-align: right;"><strong>S/. {{ number_format($totalGeneral, 2) }}</strong></td>
             </tr>
         </tfoot>
     </table>
@@ -137,7 +150,7 @@
         Total General: S/. {{ number_format($totalGeneral, 2) }}
     </div>
 
-    <div style="text-align: center; margin-top: 30px; font-size: 0.8em; color: #666;">
+    <div style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #2e2e2e;">
         © {{ date('Y') }} Botica "Mi Salud" - Todos los derechos reservados
     </div>
 </body>
