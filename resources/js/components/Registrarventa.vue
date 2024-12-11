@@ -306,8 +306,11 @@ export default {
     console.log(detallesSalida);
     // Enviar los detalles de la venta como un array de objetos
     try {
-   const response = await axios.post('/detalle-salida', detallesSalida);
-   console.log(response.data);
+    const response = await axios.post('/detalle_salida', {
+        detalles_salida: detallesSalida // Envolvemos el array en un objeto
+      });
+      console.log(response.data);
+      console.error('Error al registrar detalle:', error.response?.data || error.message);
    alert("Detalle venta creados exitosamente");
    this.cancelarVenta();  // Limpiar datos de la venta
     } catch (error) {

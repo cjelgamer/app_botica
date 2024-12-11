@@ -100,7 +100,7 @@ Route::group(['middleware' => ['web']], function () {
     });
     
     // Rutas para DetalleSalida
-    Route::prefix('detalle-salida')->group(function () {
+    Route::prefix('detalle_salida')->group(function () {
         Route::get('/', [DetalleSalidaController::class, 'index']);
         Route::get('/{id}', [DetalleSalidaController::class, 'show']);
         Route::post('/', [DetalleSalidaController::class, 'store']);
