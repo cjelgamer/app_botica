@@ -1,500 +1,539 @@
 <template>
   <div class="form-container">
-    <div class="search-container">
-    <button class="search-button" @click="openModal">
-      Buscar Medicamento
-    </button>
+    <h2>Realizar Venta</h2>
 
-    <div v-if="isModalVisible" class="modal-overlay" @click.self="closeModal">
-    <div class="modal-content">
-    <h2>Buscar Medicamento</h2>
-    <p>Este es el contenido del modal.</p>
-    <button class="close-button" @click="closeModal">Cerrar</button>
-    </div>
-    </div>
+    <!-- Sección Cliente -->
+    <div class="cliente-section">
+      <div class="input-group">
+        <label>DNI Cliente:</label>
+        <div class="search-group">
+          <input 
+            v-model="cliente.DNI" 
+            @keyup.enter="buscarCliente"
+            type="text" 
+            class="input-field"
+            placeholder="Ingrese DNI"
+          />
+          <button @click="buscarCliente" class="search-btn">Buscar</button>
+        </div>
+      </div>
 
-    </div>
-
-    <!-- Modal -->
-    <div v-if="isModalVisible" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-content">
-        <input
-          type="text"
-          v-model="searchQuery"
-          @input="filterMedicamentos"
-          placeholder="Buscar medicamento..."
-          class="search-input"
-        />
-        <ul class="medicamentos-list">
-          <li
-            v-for="medicamento in filteredMedicamentos"
-            :key="medicamento.id"
-            @click="addMedicamento(medicamento)"
-          >
-            {{ medicamento.Nombre }}
-          </li>
-        </ul>
-        <button class="close-button" @click="closeModal">Cerrar</button>
+      <div v-if="mostrarFormCliente" class="cliente-form">
+        <div class="input-group">
+          <label>Nombre:</label>
+          <input 
+            v-model="cliente.Nombre" 
+            type="text" 
+            class="input-field"
+            :disabled="clienteEncontrado"
+          />
+        </div>
+        <div class="input-group">
+          <label>Apellido Paterno:</label>
+          <input 
+            v-model="cliente.Apellido_Pat" 
+            type="text" 
+            class="input-field"
+            :disabled="clienteEncontrado"
+          />
+        </div>
+        <div class="input-group">
+          <label>Apellido Materno:</label>
+          <input 
+            v-model="cliente.Apellido_Mat" 
+            type="text" 
+            class="input-field"
+            :disabled="clienteEncontrado"
+          />
+        </div>
+        <button @click="continuarAVenta" class="btn-primary">
+          Continuar
+        </button>
       </div>
     </div>
 
-    <!-- Medicamentos -->
-    <div class="medicamentos-container">
-      <table class="medicamentos-table">
+    <!-- Sección Venta -->
+    <div v-if="mostrarVenta" class="venta-section">
+      <div class="medicamentos-search">
+        <input 
+          v-model="busquedaMedicamento" 
+          type="text" 
+          class="input-field"
+          placeholder="Buscar medicamento..." 
+          @input="filtrarMedicamentos"
+          @keyup.enter="seleccionarPrimerMedicamento"
+        />
+        <div v-if="medicamentosFiltrados.length && busquedaMedicamento" class="medicamentos-dropdown">
+          <div 
+            v-for="medicamento in medicamentosFiltrados" 
+            :key="medicamento.ID"
+            class="medicamento-item"
+            @click="seleccionarMedicamento(medicamento)"
+          >
+            {{ medicamento.Nombre }} - Stock: {{ medicamento.Stock }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de medicamentos seleccionados -->
+      <table v-if="medicamentosSeleccionados.length" class="medicamentos-table">
         <thead>
           <tr>
             <th>N°</th>
-            <th>Producto</th>
-            <th>Cantidad Disponible</th>
+            <th>Medicamento</th>
+            <th>Stock</th>
             <th>Cantidad</th>
-            <th>Precio C/U</th>
-            <th>Precio Total</th>
+            <th>Precio</th>
+            <th>Total</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(medicamento, index) in medicamentos" :key="medicamento.id">
+          <tr v-for="(med, index) in medicamentosSeleccionados" :key="index">
             <td>{{ index + 1 }}</td>
-            <td>{{ medicamento.Nombre }}</td>
-            <td>{{ medicamento.Stock }}</td>
+            <td>{{ med.Nombre }}</td>
+            <td>{{ med.Stock }}</td>
             <td>
-              <button @click="updateCantidad(medicamento, -1)" class="quantity-btn">-</button>
-              <input
-                v-model="medicamento.cantidad"
-                type="number"
-                :max="medicamento.Stock"
-                min="1"
-                class="quantity-input"
-                @input="calcularPrecioTotal(medicamento)"
-              />
-              <button @click="updateCantidad(medicamento, 1)" class="quantity-btn">+</button>
+              <div class="cantidad-control">
+                <button @click="ajustarCantidad(index, -1)" class="btn-cantidad">-</button>
+                <input 
+                  v-model.number="med.cantidad" 
+                  type="number"
+                  min="1"
+                  :max="med.Stock"
+                  @input="calcularTotal"
+                  class="input-cantidad"
+                />
+                <button @click="ajustarCantidad(index, 1)" class="btn-cantidad">+</button>
+              </div>
             </td>
-            <td>{{ medicamento.Precio }}</td>
-            <td>{{ medicamento.Precio * medicamento.cantidad }}</td>
+            <td>{{ med.Precio }}</td>
+            <td>{{ (med.Precio * med.cantidad).toFixed(2) }}</td>
             <td>
-              <button @click="removeMedicamento(medicamento)" class="delete-button">
-                 <i class="fa fa-trash"></i>
+              <button @click="eliminarMedicamento(index)" class="btn-delete">
+                <i class="fas fa-trash"></i>
               </button>
             </td>
           </tr>
         </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5" class="text-right"><strong>Total:</strong></td>
+            <td>S/. {{ totalVenta.toFixed(2) }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
       </table>
-    </div>
 
-    <!-- Información del Cliente -->
-    <div class="cliente-container">
-      <div class="input-group">
-        <label for="nombreCliente">Nombres:</label>
-        <input v-model="nombreCliente" type="text" id="nombreCliente" class="input-field" />
+      <div v-if="medicamentosSeleccionados.length" class="venta-footer">
+        <div class="forma-pago">
+          <label>Forma de Pago:</label>
+          <select v-model="formaPago" class="input-field">
+            <option value="efectivo">Efectivo</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="yape">Yape</option>
+          </select>
+        </div>
+        <button @click="finalizarVenta" class="btn-success">
+          Finalizar Venta
+        </button>
       </div>
-      <div class="input-group">
-        <label for="apellidoCliente">Apellidos:</label>
-        <input v-model="apellidoCliente" type="text" id="apellidoCliente" class="input-field" />
-      </div>
-      <div class="input-group">
-        <label for="dniCliente">DNI:</label>
-        <input v-model="dniCliente" type="text" id="dniCliente" class="input-field" />
-      </div>
-      <div class="input-group">
-      <label for="tipoPago">Tipo de Pago:</label>
-      <select v-model="tipoPago" id="tipoPago" class="input-field">
-        <option value="efectivo">Efectivo</option>
-        <option value="tarjeta">Tarjeta de Crédito</option>
-        <option value="aplicativo">Aplicativo (Yape)</option>
-      </select>
-    </div>
-    </div>
-     
-    <!-- Botones de Acción -->
-    <div class="buttons-container">
-      <button @click="aceptarVenta" class="action-btn accept-btn">Aceptar Venta</button>
-      <button @click="cancelarVenta" class="action-btn cancel-btn">Cancelar Venta</button>
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import axios from 'axios'
 
 export default {
   data() {
     return {
-      medicamentos: [], 
-      nombreCliente: "",
-      apellidoCliente: "",
-      dniCliente: "",
-      allMedicamentos: [],
-      filteredMedicamentos: [],
-      searchQuery: "",
-      isModalVisible: false,
-      tipoPago: "",
-      salidavalor: false
-    };
-  },
-  methods: {
-    openModal() {
-      this.isModalVisible = true; 
-      this.fetchAllMedicamentos();
-    },
-    closeModal() {
-      this.isModalVisible = false; 
-    },
-    async searchMedicamentos() {
-      try {
-        if (this.searchQuery.length > 2) {
-          const response = await axios.get('/medicamentos', { params: { search: this.searchQuery } });
-          this.filteredMedicamentos = response.data;
-        }
-      } catch (error) {
-        console.error('Error al buscar medicamentos:', error);
-      }
-    },
-    async fetchAllMedicamentos() {
-      try {
-        const response = await axios.get("/medicamentos");
-        this.allMedicamentos = response.data;
-        this.filteredMedicamentos = this.allMedicamentos;
-      } catch (error) {
-        console.error("Error al obtener medicamentos:", error);
-      }
-    },
-    addMedicamento(medicamento) {
-      const medicamentoExistente = this.medicamentos.find(m => m.Nombre === medicamento.Nombre);
-      if (medicamentoExistente) {
-        medicamentoExistente.cantidad += medicamento.cantidad;
-      } else {
-        this.medicamentos.push({ ...medicamento, cantidad: 1 });
-      }
-      this.closeModal();
-    },
-    updateCantidad(medicamento, delta) {
-      if (medicamento.cantidad + delta > 0 && medicamento.cantidad + delta <= medicamento.Stock) {
-        medicamento.cantidad += delta;
-      }
-    },
-    calcularPrecioTotal(medicamento) {
-      if (medicamento.cantidad < 1) medicamento.cantidad = 1;
-      if (medicamento.cantidad > medicamento.Stock) medicamento.cantidad = medicamento.Stock;
-    },
-    
-
-    async aceptarVenta() {
-  try {
-    let montoTotal = 0; // Inicializar el monto total
-    let cantidadTotal = 0;
-
-    // Verificar la cantidad de cada medicamento
-    for (const medicamento of this.medicamentos) {
-      if (medicamento.cantidad === undefined || medicamento.cantidad === null) {
-        alert(`El medicamento ${medicamento.Nombre} no tiene una cantidad válida.`);
-        return;
-      }
-      medicamento.cantidad = Number(medicamento.cantidad) || 0; // Convertir a número
-
-      // Validar que la cantidad sea mayor a 0
-      if (medicamento.cantidad <= 0) {
-        alert(`La cantidad del medicamento ${medicamento.Nombre} debe ser mayor a 0.`);
-        return;
-      }
-
-      // Calcular el precio total del medicamento y sumarlo al monto total
-      montoTotal += medicamento.Precio * medicamento.cantidad;
-      cantidadTotal += medicamento.cantidad;
+      cliente: {
+        DNI: '',
+        Nombre: '',
+        Apellido_Pat: '',
+        Apellido_Mat: '',
+        id: null
+      },
+      clienteEncontrado: false,
+      mostrarFormCliente: false,
+      mostrarVenta: false,
+      busquedaMedicamento: '',
+      medicamentosFiltrados: [],
+      medicamentosSeleccionados: [],
+      formaPago: 'efectivo',
+      totalVenta: 0
     }
+  },
 
-    // Obtener apellidos del cliente
-    const apellidoPaterno = this.separarApellidoPaterno();
-    const apellidoMaterno = this.separarApellidoMaterno();
-
-    // Registrar el cliente
-    const clienteResponse = await axios.post('/cliente', {
-      dni: this.dniCliente,
-      nombre: this.nombreCliente,
-      apellido_pat: apellidoPaterno,
-      apellido_mat: apellidoMaterno,
-    });
-
-    const clienteID = clienteResponse.data.cliente.ID;
-
-    // Obtener el vendedor
-    const vendedorResponse = await axios.get('/vendedor/perfil');
-    const vendedorID = vendedorResponse.data.id;
-
-    // Crear la venta (Salida)
-    const salidaResponse = await axios.post('/salida', {
-      cliente_id: clienteID,
-      vendedor_id: vendedorID,
-      monto_total: montoTotal,
-      Tipo_de_Pago: this.tipoPago,
-      fecha_venta: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
-    });
-
-    const salidaID = salidaResponse.data.salida.ID;
-    console.log("Respuesta del backend al crear salida:", salidaResponse.data);
-
-    // Crear los detalles de la venta (Medicamentos)
-    const detallesSalida = this.medicamentos.map(medicamento => {
-      console.log(`ID Medicamento: ${medicamento.id}, Cantidad: ${medicamento.cantidad}`);
-      return {
-        salida_id: salidaID,
-        medicamento_id: medicamento.id,
-        cantidad: medicamento.cantidad || 0,
-      };
-    });
-
-    // Enviar los detalles de la venta al backend
-    await axios.post('/detalle_salida', { detalles_salida: detallesSalida });
-
-    // Confirmación exitosa
-    this.salidavalor = true;
-    alert("Venta aceptada exitosamente");
-    this.limpiarFormulario(); // Limpiar los campos después de aceptar la venta
-
+  methods: {
+    async buscarCliente() {
+  if (!this.cliente.DNI) {
+    alert('Por favor ingrese un DNI')
+    return
+  }
+  
+  try {
+    const response = await axios.get(`/clientes/buscar/${this.cliente.DNI}`)
+    
+    if (response.data.success) {
+      const clienteData = response.data.cliente
+      this.cliente = {
+        DNI: clienteData.DNI,
+        Nombre: clienteData.Nombre,
+        Apellido_Pat: clienteData.Apellido_Pat,
+        Apellido_Mat: clienteData.Apellido_Mat,
+        ID: clienteData.ID
+      }
+      this.clienteEncontrado = true
+      this.mostrarVenta = true
+    } else {
+      this.clienteEncontrado = false
+      this.cliente = {
+        DNI: this.cliente.DNI,
+        Nombre: '',
+        Apellido_Pat: '',
+        Apellido_Mat: '',
+        ID: null
+      }
+    }
+    this.mostrarFormCliente = true
   } catch (error) {
-    console.error("Error al procesar la venta:", error);
-    alert("Hubo un error al procesar la venta. Por favor, intente nuevamente.");
+    console.error('Error al buscar cliente:', error)
+    this.clienteEncontrado = false
+    this.mostrarFormCliente = true
+    if (error.response?.status === 404) {
+      // Cliente no encontrado, mostrar formulario vacío
+      this.cliente = {
+        DNI: this.cliente.DNI,
+        Nombre: '',
+        Apellido_Pat: '',
+        Apellido_Mat: '',
+        ID: null
+      }
+    } else {
+      alert('Error al buscar cliente')
+    }
   }
 },
 
-limpiarFormulario() {
-  // Limpiar la lista de medicamentos, información del cliente y otros campos
-  this.medicamentos = [];
-  this.nombreCliente = "";
-  this.apellidoCliente = "";
-  this.dniCliente = "";
-  this.tipoPago = "";
-  this.salidavalor = false;
-}
 
+    async filtrarMedicamentos() {
+      if (this.busquedaMedicamento.length < 2) {
+        this.medicamentosFiltrados = []
+        return
+      }
+
+      try {
+        const response = await axios.get('/medicamentos', {
+          params: { search: this.busquedaMedicamento }
+        })
+        this.medicamentosFiltrados = response.data
+      } catch (error) {
+        console.error('Error al buscar medicamentos:', error)
+      }
+    },
+
+    seleccionarPrimerMedicamento() {
+      if (this.medicamentosFiltrados.length > 0) {
+        this.seleccionarMedicamento(this.medicamentosFiltrados[0])
+      }
+    },
+
+    seleccionarMedicamento(medicamento) {
+      const existe = this.medicamentosSeleccionados.find(m => m.ID === medicamento.ID)
+      if (!existe && medicamento.Stock > 0) {
+        this.medicamentosSeleccionados.push({
+          ...medicamento,
+          cantidad: 1
+        })
+        this.calcularTotal()
+      }
+      this.busquedaMedicamento = ''
+      this.medicamentosFiltrados = []
+    },
+
+    ajustarCantidad(index, delta) {
+      const med = this.medicamentosSeleccionados[index]
+      const nuevaCantidad = med.cantidad + delta
+      if (nuevaCantidad > 0 && nuevaCantidad <= med.Stock) {
+        med.cantidad = nuevaCantidad
+        this.calcularTotal()
+      }
+    },
+
+    eliminarMedicamento(index) {
+      this.medicamentosSeleccionados.splice(index, 1)
+      this.calcularTotal()
+    },
+
+    calcularTotal() {
+      this.totalVenta = this.medicamentosSeleccionados.reduce(
+        (total, med) => total + (med.Precio * med.cantidad),
+        0
+      )
+    },
+
+    async continuarAVenta() {
+  if (!this.clienteEncontrado) {
+    if (!this.cliente.DNI || !this.cliente.Nombre || 
+        !this.cliente.Apellido_Pat || !this.cliente.Apellido_Mat) {
+      alert('Por favor complete todos los campos del cliente')
+      return
+    }
+
+    try {
+      const response = await axios.post('/clientes', {
+        DNI: this.cliente.DNI,
+        Nombre: this.cliente.Nombre,
+        Apellido_Pat: this.cliente.Apellido_Pat,
+        Apellido_Mat: this.cliente.Apellido_Mat
+      })
+      
+      if (response.data.success) {
+        const clienteData = response.data.cliente
+        this.cliente = {
+          DNI: clienteData.DNI,
+          Nombre: clienteData.Nombre,
+          Apellido_Pat: clienteData.Apellido_Pat,
+          Apellido_Mat: clienteData.Apellido_Mat,
+          ID: clienteData.ID
+        }
+        this.clienteEncontrado = true
+      }
+    } catch (error) {
+      console.error('Error al registrar cliente:', error)
+      alert(error.response?.data?.message || 'Error al registrar el cliente')
+      return
+    }
   }
-};
+  this.mostrarVenta = true
+},
+async finalizarVenta() {
+    if (this.medicamentosSeleccionados.length === 0) {
+        alert('Agregue al menos un medicamento a la venta')
+        return
+    }
+
+    try {
+        // 1. Crear la venta
+        const ventaData = {
+            Cliente_ID: this.cliente.ID,
+            Monto_Total: this.totalVenta,
+            Tipo_de_Pago: this.formaPago
+        }
+        
+        console.log('Datos venta a enviar:', ventaData)
+        const ventaResponse = await axios.post('/salida', ventaData)
+        console.log('Respuesta de venta:', ventaResponse.data)
+
+        if (ventaResponse.data.success) {
+            const salidaId = ventaResponse.data.salida.ID
+            console.log('ID de salida obtenido:', salidaId)
+
+            // 3. Crear los detalles con el nombre de campo correcto
+            const detallesData = {
+                salida_id: salidaId, // Cambiado a minúsculas
+                detalles: this.medicamentosSeleccionados.map(med => ({
+                    medicamento_id: med.ID, // Cambiado a minúsculas
+                    cantidad: med.cantidad
+                }))
+            }
+            
+            console.log('Datos detalles a enviar:', detallesData)
+            const detallesResponse = await axios.post('/detalle-salida/masivo', detallesData)
+            console.log('Respuesta de detalles:', detallesResponse.data)
+
+            if (detallesResponse.data.success) {
+                alert('Venta realizada con éxito')
+                this.reiniciarFormulario()
+            }
+        } else {
+            throw new Error('Error al crear la venta')
+        }
+    } catch (error) {
+        console.error('Error al procesar la venta:', error)
+        if (error.response?.data?.message) {
+            alert(error.response.data.message)
+        } else {
+            alert('Error al procesar la venta: ' + error.message)
+        }
+    }
+},
+
+reiniciarFormulario() {
+  this.cliente = {
+    DNI: '',
+    Nombre: '',
+    Apellido_Pat: '',
+    Apellido_Mat: '',
+    ID: null
+  }
+  this.clienteEncontrado = false
+  this.mostrarFormCliente = false
+  this.mostrarVenta = false
+  this.medicamentosSeleccionados = []
+  this.formaPago = 'efectivo'
+  this.totalVenta = 0
+}
+  }
+}
 </script>
 
 <style scoped>
-/* Contenedor principal del formulario */
 .form-container {
-  width: 100%;
-  margin: 20px auto;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilo para el campo de búsqueda */
-/* Contenedor del botón */
-.search-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin: 20px 0;
-}
-
-/* Botón */
-.search-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-  background-color: #007bff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.search-button:hover {
-  background-color: #0056b3;
-}
-.search-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-/* Modal Content */
-.modal-content {
+.cliente-section, .venta-section {
   background-color: white;
   padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-  width: 300px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
 
-/* Botón para cerrar */
-.close-button {
-  margin-top: 20px;
-  padding: 10px 20px;
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.search-group {
+  display: flex;
+  gap: 10px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   font-size: 14px;
-  color: white;
-  background-color: #dc3545;
+}
+
+.btn-primary, .btn-success, .search-btn {
+  padding: 8px 16px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-weight: bold;
+  transition: background-color 0.2s;
 }
 
-.close-button:hover {
-  background-color: #c82333;
+.btn-primary, .search-btn {
+  background-color: #4CAF50;
+  color: white;
 }
 
+.btn-success {
+  background-color: #2196F3;
+  color: white;
+  padding: 12px 24px;
+  font-size: 16px;
+}
 
-.medicamentos-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.medicamentos-search {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.medicamentos-dropdown {
+  position: absolute;
+  width: 100%;
   max-height: 200px;
   overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.medicamentos-list li {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+.medicamento-item {
+  padding: 8px 12px;
   cursor: pointer;
-  transition: background-color 0.3s;
-}
-.medicamentos-list li:hover {
-  background-color: #f1f1f1;
+  border-bottom: 1px solid #eee;
 }
 
-/* Tabla de medicamentos */
-.medicamentos-container {
-  width: 100%;
-  margin-top: 20px;
-  display: block;
+.medicamento-item:hover {
+  background-color: #f5f5f5;
 }
 
 .medicamentos-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 .medicamentos-table th,
 .medicamentos-table td {
-  padding: 10px;
-  text-align: center;
+  padding: 12px;
+  text-align: left;
   border-bottom: 1px solid #ddd;
 }
 
 .medicamentos-table th {
-  background-color: #333;
-  color: white;
-}
-
-.medicamentos-table tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-/* Botones para cantidad */
-.quantity-btn {
-  background-color: #f1f1f1;
-  border: 1px solid #ddd;
-  padding: 5px 10px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
-}
-
-.quantity-btn:hover {
-  background-color: #ddd;
-}
-
-.quantity-input {
-  width: 50px;
-  padding: 5px;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-
-/* Estilos para la información del cliente */
-.cliente-container {
-  display: flex;
-  flex-wrap: wrap; /* Permite que los elementos salten de línea si no hay espacio */
-  gap: 16px; /* Espaciado entre los elementos */
-  justify-content: space-between;
-}
-.input-group {
-  display: flex;
-  flex-direction: column;
-  width: calc(50% - 8px); /* Mitad del ancho menos el gap */
-  position: relative; /* Para el placeholder dentro del input */
-}
-.input-group label {
+  background-color: #f5f5f5;
   font-weight: bold;
-  margin-bottom: 5px;
 }
-.input-field::placeholder {
-  font-size: 14px;
-  color: #6a6a6a;
-}
-/*.input-field {
-  height: 80%;
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}*/
-.input-field:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
-}
-/* Botones */
-.buttons-container {
-  margin-top: 20px;
+
+.cantidad-control {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
 }
 
-.action-btn {
-  padding: 10px 20px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
+.btn-cantidad {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ddd;
+  background: #f5f5f5;
+  border-radius: 4px;
   cursor: pointer;
-  width: 48%;
 }
 
-.accept-btn {
-  background-color: #4CAF50;
-  color: white;
+.input-cantidad {
+  width: 60px;
+  text-align: center;
+  padding: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
-.accept-btn:hover {
-  background-color: #45a049;
+.btn-delete {
+  color: #dc3545;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
 }
 
-.cancel-btn {
-  background-color: #f44336;
-  color: white;
+.venta-footer {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #ddd;
 }
 
-.cancel-btn:hover {
-  background-color: #e53935;
+.text-right {
+  text-align: right;
 }
 
+@media (max-width: 768px) {
+  .search-group {
+    flex-direction: column;
+  }
+  
+  .btn-primary, .btn-success, .search-btn {
+    width: 100%;
+  }
+}
 </style>

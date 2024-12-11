@@ -2,35 +2,75 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cliente;
 use Illuminate\Http\Request;
-use App\Models\Cliente; // Importar el modelo Cliente
+use Illuminate\Support\Facades\DB;
 
 class ClienteController extends Controller
 {
-    public function guardarCliente(Request $request)
+    public function store(Request $request)
     {
-        // Validar los datos recibidos
-        $request->validate([
-            'dni' => 'required|string|max:20|unique:Cliente,DNI', // Validar DNI único
-            'nombre' => 'required|string|max:255',
-            'apellido_pat' => 'required|string|max:255',
-            'apellido_mat' => 'required|string|max:255', // Es opcional
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Crear o actualizar el cliente en la base de datos
-        $cliente = Cliente::updateOrCreate(
-            ['DNI' => $request->dni], // Buscar por DNI
-            [
-                'Nombre' => $request->nombre,
-                'Apellido_Pat' => $request->apellido_pat,
-                'Apellido_Mat' => $request->apellido_mat,
-            ]
-        );
+            $request->validate([
+                'DNI' => 'required|string|max:20|unique:Cliente,DNI',
+                'Nombre' => 'required|string|max:255',
+                'Apellido_Pat' => 'required|string|max:255',
+                'Apellido_Mat' => 'required|string|max:255',
+            ]);
 
-        // Devolver la respuesta con el cliente creado o actualizado
-        return response()->json([
-            'message' => 'Cliente guardado exitosamente.',
-            'cliente' => $cliente
-        ]);
+            $cliente = Cliente::create([
+                'DNI' => $request->DNI,
+                'Nombre' => $request->Nombre,
+                'Apellido_Pat' => $request->Apellido_Pat,
+                'Apellido_Mat' => $request->Apellido_Mat
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'cliente' => $cliente,
+                'message' => 'Cliente registrado exitosamente'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar cliente: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function buscarPorDNI($dni)
+    {
+        try {
+            $cliente = Cliente::where('DNI', $dni)->first();
+
+            if (!$cliente) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cliente no encontrado'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'cliente' => $cliente
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar cliente: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

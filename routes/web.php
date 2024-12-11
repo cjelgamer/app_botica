@@ -81,31 +81,14 @@ Route::group(['middleware' => ['web']], function () {
         return response()->json($medicamentos);
     });
 
-    // Ruta para aceptar una venta
-    Route::post('/venta', function (Request $request) {
-        $data = $request->all();
-        return response()->json(['status' => 'success', 'message' => 'Venta aceptada']);
-    });
 
-    Route::post('/cancelar-venta', function () {
-        return response()->json(['status' => 'success', 'message' => 'Venta cancelada']);
-    });
+    Route::post('/clientes', [ClienteController::class, 'store']);
+Route::get('/clientes/buscar/{dni}', [ClienteController::class, 'buscarPorDNI']);
+Route::get('/clientes', [ClienteController::class, 'index']);
 
-    // Ruta para crear una venta
-    Route::prefix('salida')->group(function () {
-    Route::post('/', [SalidaController::class, 'store']); // Crear una venta
-    });
-
-    // Ruta para crear un detalle de venta
-    Route::prefix('detalle_salida')->group(function () {
-    Route::post('/', [DetalleSalidaController::class, 'store']); // Crear un detalle de venta
-    });
-    
-    // Rutas para Cliente
-    Route::prefix('cliente')->group(function () {
-        Route::post('/', [ClienteController::class, 'guardarCliente'])->name('cliente.guardar');
-    });
-
+Route::post('/salida', [SalidaController::class, 'store']);
+Route::post('/detalle-salida', [DetalleSalidaController::class, 'store']);
+Route::post('/detalle-salida/masivo', [DetalleSalidaController::class, 'storeMasivo']);
 });
 
 // Rutas para Salida

@@ -1,44 +1,50 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\DetalleSalida;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DetalleSalidaController extends Controller
 {
-    // Crear los detalles de la venta
-    public function store(Request $request)
+    public function storeMasivo(Request $request)
     {
         try {
-            // Validar los datos del detalle
-            $validated = $request->validate([
-                'salida_id' => 'required|exists:salida,id', // ID de la venta
-                'medicamento_id' => 'required|exists:medicamentos,id', // ID del medicamento
-                'cantidad' => 'required|numeric|min:1', // Cantidad del medicamento
+            DB::beginTransaction();
+
+            $request->validate([
+                'salida_id' => 'required|exists:Salida,ID',
+                'detalles' => 'required|array',
+                'detalles.*.medicamento_id' => 'required|exists:Medicamento,ID',
+                'detalles.*.cantidad' => 'required|integer|min:1'
             ]);
 
-            // Crear el detalle de la venta (medicamento) en la base de datos
-            $detalle = DetalleSalida::create([
-                'Salida_ID' => $validated['salida_id'],
-                'Medicamento_ID' => $validated['medicamento_id'],
-                'Cantidad' => $validated['cantidad'],
-            ]);
+            $detalles = [];
+            foreach ($request->detalles as $detalle) {
+                $detalleSalida = new DetalleSalida();
+                $detalleSalida->Salida_ID = $request->salida_id;
+                $detalleSalida->Medicamento_ID = $detalle['medicamento_id'];
+                $detalleSalida->Cantidad = $detalle['cantidad'];
+                $detalleSalida->save();
+                
+                $detalles[] = $detalleSalida;
+            }
 
-            // Retornar una respuesta exitosa con el detalle creado
+            DB::commit();
+
             return response()->json([
-                'message' => 'Detalle de la venta creado exitosamente.',
-                'detalle' => $detalle,
-            ], 201); // Código de estado 201 para creado exitosamente
+                'success' => true,
+                'detalles' => $detalles,
+                'message' => 'Detalles de venta registrados exitosamente'
+            ]);
 
         } catch (\Exception $e) {
-            // Loguear el error
-            \Log::error('Error al guardar el detalle de la salida:', ['exception' => $e->getMessage()]);
-
-            // Retornar una respuesta de error
+            DB::rollBack();
             return response()->json([
-                'error' => 'No se pudo guardar el detalle de la salida.',
-                'details' => $e->getMessage(),
-            ], 500); // Código de estado 500 para error interno del servidor
+                'success' => false,
+                'message' => 'Error al registrar los detalles: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
