@@ -177,7 +177,27 @@ export default {
       if (medicamento.cantidad > medicamento.Stock) medicamento.cantidad = medicamento.Stock;
     },
     
-
+    separarApellidoPaterno() {
+    if (this.apellidoCliente.trim() !== "") {
+      const apellidos = this.apellidoCliente.trim().split(" ");
+      this.apellidoPaterno = apellidos[0] || ""; // Primer apellido
+      this.apellidoMaterno = apellidos[1] || ""; // Segundo apellido si existe
+    } else {
+      this.apellidoPaterno = "";
+      this.apellidoMaterno = "";
+    const apellidos = this.apellidoCliente.trim().split(" ");
+        return apellidos[0] || "";  // Primer apellido
+     }
+        return "Apellido Paterno Requerido"; 
+     },
+    separarApellidoMaterno() {
+     if (this.apellidoCliente.trim() !== "") {
+    const apellidos = this.apellidoCliente.trim().split(" ");
+    return apellidos.length > 1 ? apellidos[apellidos.length - 1] : "";  // Último apellido
+    }
+    return "Apellido Materno Requerido"
+    },
+    // Función para aceptar la venta
     async aceptarVenta() {
   try {
     let montoTotal = 0; // Inicializar el monto total
