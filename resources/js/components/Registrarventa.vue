@@ -239,126 +239,102 @@ export default {
         this.seleccionarMedicamento(this.medicamentosFiltrados[0])
       }
     },
-
-    seleccionarMedicamento(medicamento) {
-      const existe = this.medicamentosSeleccionados.find(m => m.ID === medicamento.ID)
-      if (!existe && medicamento.Stock > 0) {
-        this.medicamentosSeleccionados.push({
-          ...medicamento,
-          cantidad: 1
-        })
-        this.calcularTotal()
+    addMedicamento(medicamento) {
+      const medicamentoExistente = this.medicamentos.find(m => m.Nombre === medicamento.Nombre);
+      if (medicamentoExistente) {
+        medicamentoExistente.cantidad += medicamento.cantidad;
+      } else {
+        this.medicamentos.push({ ...medicamento, cantidad: 1 });
       }
-      this.busquedaMedicamento = ''
-      this.medicamentosFiltrados = []
+      this.closeModal();
     },
-
-    ajustarCantidad(index, delta) {
-      const med = this.medicamentosSeleccionados[index]
-      const nuevaCantidad = med.cantidad + delta
-      if (nuevaCantidad > 0 && nuevaCantidad <= med.Stock) {
-        med.cantidad = nuevaCantidad
-        this.calcularTotal()
+    updateCantidad(medicamento, delta) {
+      if (medicamento.cantidad + delta > 0 && medicamento.cantidad + delta <= medicamento.Stock) {
+        medicamento.cantidad += delta;
       }
     },
-
-    eliminarMedicamento(index) {
-      this.medicamentosSeleccionados.splice(index, 1)
-      this.calcularTotal()
+    calcularPrecioTotal(medicamento) {
+      if (medicamento.cantidad < 1) medicamento.cantidad = 1;
+      if (medicamento.cantidad > medicamento.Stock) medicamento.cantidad = medicamento.Stock;
     },
+    
 
-    calcularTotal() {
-      this.totalVenta = this.medicamentosSeleccionados.reduce(
-        (total, med) => total + (med.Precio * med.cantidad),
-        0
-      )
-    },
+    async aceptarVenta() {
+  try {
+    let montoTotal = 0; // Inicializar el monto total
+    let cantidadTotal = 0;
 
-    async continuarAVenta() {
-  if (!this.clienteEncontrado) {
-    if (!this.cliente.DNI || !this.cliente.Nombre || 
-        !this.cliente.Apellido_Pat || !this.cliente.Apellido_Mat) {
-      alert('Por favor complete todos los campos del cliente')
-      return
+    // Verificar la cantidad de cada medicamento
+    for (const medicamento of this.medicamentos) {
+      if (medicamento.cantidad === undefined || medicamento.cantidad === null) {
+        alert(`El medicamento ${medicamento.Nombre} no tiene una cantidad válida.`);
+        return;
+      }
+      medicamento.cantidad = Number(medicamento.cantidad) || 0; // Convertir a número
+
+      // Validar que la cantidad sea mayor a 0
+      if (medicamento.cantidad <= 0) {
+        alert(`La cantidad del medicamento ${medicamento.Nombre} debe ser mayor a 0.`);
+        return;
+      }
+
+      // Calcular el precio total del medicamento y sumarlo al monto total
+      montoTotal += medicamento.Precio * medicamento.cantidad;
+      cantidadTotal += medicamento.cantidad;
     }
 
-    try {
-      const response = await axios.post('/clientes', {
-        DNI: this.cliente.DNI,
-        Nombre: this.cliente.Nombre,
-        Apellido_Pat: this.cliente.Apellido_Pat,
-        Apellido_Mat: this.cliente.Apellido_Mat
-      })
-      
-      if (response.data.success) {
-        const clienteData = response.data.cliente
-        this.cliente = {
-          DNI: clienteData.DNI,
-          Nombre: clienteData.Nombre,
-          Apellido_Pat: clienteData.Apellido_Pat,
-          Apellido_Mat: clienteData.Apellido_Mat,
-          ID: clienteData.ID
-        }
-        this.clienteEncontrado = true
-      }
-    } catch (error) {
-      console.error('Error al registrar cliente:', error)
-      alert(error.response?.data?.message || 'Error al registrar el cliente')
-      return
-    }
+    // Obtener apellidos del cliente
+    const apellidoPaterno = this.separarApellidoPaterno();
+    const apellidoMaterno = this.separarApellidoMaterno();
+
+    // Registrar el cliente
+    const clienteResponse = await axios.post('/cliente', {
+      dni: this.dniCliente,
+      nombre: this.nombreCliente,
+      apellido_pat: apellidoPaterno,
+      apellido_mat: apellidoMaterno,
+    });
+
+    const clienteID = clienteResponse.data.cliente.ID;
+
+    // Obtener el vendedor
+    const vendedorResponse = await axios.get('/vendedor/perfil');
+    const vendedorID = vendedorResponse.data.id;
+
+    // Crear la venta (Salida)
+    const salidaResponse = await axios.post('/salida', {
+      cliente_id: clienteID,
+      vendedor_id: vendedorID,
+      monto_total: montoTotal,
+      Tipo_de_Pago: this.tipoPago,
+      fecha_venta: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
+    });
+
+    const salidaID = salidaResponse.data.salida.ID;
+    console.log("Respuesta del backend al crear salida:", salidaResponse.data);
+
+    // Crear los detalles de la venta (Medicamentos)
+    const detallesSalida = this.medicamentos.map(medicamento => {
+      console.log(`ID Medicamento: ${medicamento.id}, Cantidad: ${medicamento.cantidad}`);
+      return {
+        salida_id: salidaID,
+        medicamento_id: medicamento.id,
+        cantidad: medicamento.cantidad || 0,
+      };
+    });
+
+    // Enviar los detalles de la venta al backend
+    await axios.post('/detalle_salida', { detalles_salida: detallesSalida });
+
+    // Confirmación exitosa
+    this.salidavalor = true;
+    alert("Venta aceptada exitosamente");
+    this.limpiarFormulario(); // Limpiar los campos después de aceptar la venta
+
+  } catch (error) {
+    console.error("Error al procesar la venta:", error);
+    alert("Hubo un error al procesar la venta. Por favor, intente nuevamente.");
   }
-  this.mostrarVenta = true
-},
-async finalizarVenta() {
-    if (this.medicamentosSeleccionados.length === 0) {
-        alert('Agregue al menos un medicamento a la venta')
-        return
-    }
-
-    try {
-        // 1. Crear la venta
-        const ventaData = {
-            Cliente_ID: this.cliente.ID,
-            Monto_Total: this.totalVenta,
-            Tipo_de_Pago: this.formaPago
-        }
-        
-        console.log('Datos venta a enviar:', ventaData)
-        const ventaResponse = await axios.post('/salida', ventaData)
-        console.log('Respuesta de venta:', ventaResponse.data)
-
-        if (ventaResponse.data.success) {
-            const salidaId = ventaResponse.data.salida.ID
-            console.log('ID de salida obtenido:', salidaId)
-
-            // 3. Crear los detalles con el nombre de campo correcto
-            const detallesData = {
-                salida_id: salidaId, // Cambiado a minúsculas
-                detalles: this.medicamentosSeleccionados.map(med => ({
-                    medicamento_id: med.ID, // Cambiado a minúsculas
-                    cantidad: med.cantidad
-                }))
-            }
-            
-            console.log('Datos detalles a enviar:', detallesData)
-            const detallesResponse = await axios.post('/detalle-salida/masivo', detallesData)
-            console.log('Respuesta de detalles:', detallesResponse.data)
-
-            if (detallesResponse.data.success) {
-                alert('Venta realizada con éxito')
-                this.reiniciarFormulario()
-            }
-        } else {
-            throw new Error('Error al crear la venta')
-        }
-    } catch (error) {
-        console.error('Error al procesar la venta:', error)
-        if (error.response?.data?.message) {
-            alert(error.response.data.message)
-        } else {
-            alert('Error al procesar la venta: ' + error.message)
-        }
-    }
 },
 
 reiniciarFormulario() {
