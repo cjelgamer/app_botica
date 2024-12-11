@@ -1,4 +1,4 @@
--- Active: 1726805132421@@127.0.0.1@3306
+-- Active: 1731434192460@@127.0.0.1@3306
 DROP DATABASE botica1;
 
 create DATABASE botica1;
