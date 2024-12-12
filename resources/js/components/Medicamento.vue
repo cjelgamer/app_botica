@@ -222,6 +222,11 @@ export default {
   margin-top: 30px;
   border-collapse: collapse;
   width: 100%;
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: white;
 }
 
 
@@ -232,10 +237,18 @@ export default {
     text-align: left;
   }
   
-  .table-container th, .table-container td {
-    padding: 12px 15px;
-    border-bottom: 1px solid #ddd;
-  }
+  .table-container thead {
+  position: sticky;
+  top: 0;
+  background-color: #333;
+  z-index: 1;
+}
+
+.table-container th, .table-container td {
+  padding: 8px 15px;
+  height: 40px;
+  line-height: 1.2;
+}
   
   .table-container th {
     background-color: #333;
