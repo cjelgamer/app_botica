@@ -2,6 +2,11 @@
   <div class="form-container">
     <h2>Realizar Venta</h2>
 
+    <div class="saldo-section">
+      <span class="saldo-label">Saldo Actual:</span>
+      <span class="saldo-monto">S/. {{ saldoCaja.toFixed(2) }}</span>
+    </div>
+
     <!-- Sección Cliente -->
     <div class="cliente-section">
       <div class="input-group">
@@ -162,7 +167,8 @@ export default {
       medicamentosFiltrados: [],
       medicamentosSeleccionados: [],
       formaPago: 'efectivo',
-      totalVenta: 0
+      totalVenta: 0,
+      saldoCaja: 0  // Agregar esta línea
     }
   },
 
@@ -309,6 +315,35 @@ export default {
   }
   this.mostrarVenta = true
 },
+
+
+async obtenerSaldoCaja() {
+  try {
+    const response = await axios.get('/caja/saldo-actual');
+    if (response.data.success) {
+      const saldo = parseFloat(response.data.saldo_final);
+      this.saldoCaja = isNaN(saldo) ? 0 : saldo;
+    } else {
+      console.error('Backend no devolvió un saldo válido:', response.data);
+      this.saldoCaja = 0;
+    }
+  } catch (error) {
+    console.error('Error en la solicitud al backend:', error);
+    this.saldoCaja = 0;
+  }
+},
+
+
+
+
+
+
+mounted() {
+  this.obtenerSaldoCaja()
+},
+
+
+
 async finalizarVenta() {
     if (this.medicamentosSeleccionados.length === 0) {
         alert('Agregue al menos un medicamento a la venta')
@@ -345,6 +380,7 @@ async finalizarVenta() {
             console.log('Respuesta de detalles:', detallesResponse.data)
 
             if (detallesResponse.data.success) {
+                await this.obtenerSaldoCaja() // Agregar esta línea
                 alert('Venta realizada con éxito')
                 this.reiniciarFormulario()
             }
@@ -526,6 +562,29 @@ reiniciarFormulario() {
 .text-right {
   text-align: right;
 }
+
+
+.saldo-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  background-color: #f8f9fa;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.saldo-label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.saldo-monto {
+  font-size: 1.2em;
+  color: #28a745;
+}
+
 
 @media (max-width: 768px) {
   .search-group {

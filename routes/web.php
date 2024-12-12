@@ -13,6 +13,7 @@ use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\SalidaController;
 use App\Http\Controllers\DetalleSalidaController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\CajaController;
 use App\Models\Medicamento;
 
 // Rutas públicas
@@ -89,6 +90,12 @@ Route::get('/clientes', [ClienteController::class, 'index']);
 Route::post('/salida', [SalidaController::class, 'store']);
 Route::post('/detalle-salida', [DetalleSalidaController::class, 'store']);
 Route::post('/detalle-salida/masivo', [DetalleSalidaController::class, 'storeMasivo']);
+
+
+
+Route::get('/caja/saldo-actual', [CajaController::class, 'getSaldoActual']);
+
+
 });
 
 // Rutas para Salida
