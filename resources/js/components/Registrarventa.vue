@@ -296,6 +296,9 @@ export default {
         }
 
         try {
+          // Intentamos registrar el nuevo cliente
+          console.log('Intentando registrar cliente:', this.cliente)
+          
           const response = await axios.post('/clientes', {
             DNI: this.cliente.DNI,
             Nombre: this.cliente.Nombre,
@@ -303,23 +306,34 @@ export default {
             Apellido_Mat: this.cliente.Apellido_Mat
           })
           
-          if (response.data.success) {
-            const clienteData = response.data.cliente
+          console.log('Respuesta del servidor:', response.data)
+          
+          if (response.data.success && response.data.cliente) {
+            // Actualizamos el estado del cliente con la respuesta
             this.cliente = {
-              DNI: clienteData.DNI,
-              Nombre: clienteData.Nombre,
-              Apellido_Pat: clienteData.Apellido_Pat,
-              Apellido_Mat: clienteData.Apellido_Mat,
-              ID: clienteData.ID
+              ...response.data.cliente,
+              ID: response.data.cliente.ID // Aseguramos que el ID esté presente
             }
+            console.log('Cliente actualizado:', this.cliente)
             this.clienteEncontrado = true
+          } else {
+            throw new Error('La respuesta del servidor no contiene los datos esperados')
           }
+          
         } catch (error) {
-          console.error('Error al registrar cliente:', error)
-          alert(error.response?.data?.message || 'Error al registrar el cliente')
+          console.error('Error completo:', error)
+          console.error('Response data:', error.response?.data)
+          alert('Error al procesar el cliente: ' + (error.response?.data?.message || error.message))
           return
         }
       }
+
+      if (!this.cliente.ID) {
+        console.error('No hay ID de cliente después del proceso:', this.cliente)
+        alert('Error: No se pudo obtener el ID del cliente')
+        return
+      }
+      
       this.mostrarVenta = true
     },
 
