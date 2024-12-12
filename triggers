@@ -66,22 +66,6 @@ END$$
 
 
 
-DROP TRIGGER venta_datos_cliente;
-
-DELIMITER ;
-
-/*Insertar en tabla cliente de venta*/
-DELIMITER $$
-CREATE TRIGGER venta_datos_cliente
-AFTER INSERT ON Cliente
-FOR EACH ROW
-    INSERT INTO Cliente (DNI, Nombre, Apellido_Pat,Apellido_Mat)
-    VALUES (NEW.ID, NEW.Nombre, NEW.Apellido_Pat,NEW.Apellido_Mat);
-BEGIN
-END$$
-
-DELIMITER ;
-
 
 /*****************************************************************************/
 /*****************************************************************************/
