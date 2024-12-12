@@ -168,61 +168,68 @@ export default {
       medicamentosSeleccionados: [],
       formaPago: 'efectivo',
       totalVenta: 0,
-      saldoCaja: 0  // Agregar esta línea
+      saldoCaja: 0
     }
+  },
+
+  mounted() {
+    this.obtenerSaldoCaja();
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
+  },
+
+  beforeDestroy() {
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
   },
 
   methods: {
     async buscarCliente() {
-  if (!this.cliente.DNI) {
-    alert('Por favor ingrese un DNI')
-    return
-  }
-  
-  try {
-    const response = await axios.get(`/clientes/buscar/${this.cliente.DNI}`)
-    
-    if (response.data.success) {
-      const clienteData = response.data.cliente
-      this.cliente = {
-        DNI: clienteData.DNI,
-        Nombre: clienteData.Nombre,
-        Apellido_Pat: clienteData.Apellido_Pat,
-        Apellido_Mat: clienteData.Apellido_Mat,
-        ID: clienteData.ID
+      if (!this.cliente.DNI) {
+        alert('Por favor ingrese un DNI')
+        return
       }
-      this.clienteEncontrado = true
-      this.mostrarVenta = true
-    } else {
-      this.clienteEncontrado = false
-      this.cliente = {
-        DNI: this.cliente.DNI,
-        Nombre: '',
-        Apellido_Pat: '',
-        Apellido_Mat: '',
-        ID: null
+      
+      try {
+        const response = await axios.get(`/clientes/buscar/${this.cliente.DNI}`)
+        
+        if (response.data.success) {
+          const clienteData = response.data.cliente
+          this.cliente = {
+            DNI: clienteData.DNI,
+            Nombre: clienteData.Nombre,
+            Apellido_Pat: clienteData.Apellido_Pat,
+            Apellido_Mat: clienteData.Apellido_Mat,
+            ID: clienteData.ID
+          }
+          this.clienteEncontrado = true
+          this.mostrarVenta = true
+        } else {
+          this.clienteEncontrado = false
+          this.cliente = {
+            DNI: this.cliente.DNI,
+            Nombre: '',
+            Apellido_Pat: '',
+            Apellido_Mat: '',
+            ID: null
+          }
+        }
+        this.mostrarFormCliente = true
+      } catch (error) {
+        console.error('Error al buscar cliente:', error)
+        this.clienteEncontrado = false
+        this.mostrarFormCliente = true
+        if (error.response?.status === 404) {
+          this.cliente = {
+            DNI: this.cliente.DNI,
+            Nombre: '',
+            Apellido_Pat: '',
+            Apellido_Mat: '',
+            ID: null
+          }
+        } else {
+          alert('Error al buscar cliente')
+        }
       }
-    }
-    this.mostrarFormCliente = true
-  } catch (error) {
-    console.error('Error al buscar cliente:', error)
-    this.clienteEncontrado = false
-    this.mostrarFormCliente = true
-    if (error.response?.status === 404) {
-      // Cliente no encontrado, mostrar formulario vacío
-      this.cliente = {
-        DNI: this.cliente.DNI,
-        Nombre: '',
-        Apellido_Pat: '',
-        Apellido_Mat: '',
-        ID: null
-      }
-    } else {
-      alert('Error al buscar cliente')
-    }
-  }
-},
-
+    },
 
     async filtrarMedicamentos() {
       if (this.busquedaMedicamento.length < 2) {
@@ -281,137 +288,115 @@ export default {
     },
 
     async continuarAVenta() {
-  if (!this.clienteEncontrado) {
-    if (!this.cliente.DNI || !this.cliente.Nombre || 
-        !this.cliente.Apellido_Pat || !this.cliente.Apellido_Mat) {
-      alert('Por favor complete todos los campos del cliente')
-      return
-    }
-
-    try {
-      const response = await axios.post('/clientes', {
-        DNI: this.cliente.DNI,
-        Nombre: this.cliente.Nombre,
-        Apellido_Pat: this.cliente.Apellido_Pat,
-        Apellido_Mat: this.cliente.Apellido_Mat
-      })
-      
-      if (response.data.success) {
-        const clienteData = response.data.cliente
-        this.cliente = {
-          DNI: clienteData.DNI,
-          Nombre: clienteData.Nombre,
-          Apellido_Pat: clienteData.Apellido_Pat,
-          Apellido_Mat: clienteData.Apellido_Mat,
-          ID: clienteData.ID
+      if (!this.clienteEncontrado) {
+        if (!this.cliente.DNI || !this.cliente.Nombre || 
+            !this.cliente.Apellido_Pat || !this.cliente.Apellido_Mat) {
+          alert('Por favor complete todos los campos del cliente')
+          return
         }
-        this.clienteEncontrado = true
+
+        try {
+          const response = await axios.post('/clientes', {
+            DNI: this.cliente.DNI,
+            Nombre: this.cliente.Nombre,
+            Apellido_Pat: this.cliente.Apellido_Pat,
+            Apellido_Mat: this.cliente.Apellido_Mat
+          })
+          
+          if (response.data.success) {
+            const clienteData = response.data.cliente
+            this.cliente = {
+              DNI: clienteData.DNI,
+              Nombre: clienteData.Nombre,
+              Apellido_Pat: clienteData.Apellido_Pat,
+              Apellido_Mat: clienteData.Apellido_Mat,
+              ID: clienteData.ID
+            }
+            this.clienteEncontrado = true
+          }
+        } catch (error) {
+          console.error('Error al registrar cliente:', error)
+          alert(error.response?.data?.message || 'Error al registrar el cliente')
+          return
+        }
       }
-    } catch (error) {
-      console.error('Error al registrar cliente:', error)
-      alert(error.response?.data?.message || 'Error al registrar el cliente')
-      return
-    }
-  }
-  this.mostrarVenta = true
-},
+      this.mostrarVenta = true
+    },
 
+    async obtenerSaldoCaja() {
+      try {
+        const response = await axios.get('/caja/saldo-actual')
+        if (response.data.success) {
+          this.saldoCaja = parseFloat(response.data.saldo_final) || 0
+        }
+      } catch (error) {
+        console.error('Error al obtener saldo:', error)
+      }
+    },
 
-async obtenerSaldoCaja() {
-  try {
-    const response = await axios.get('/caja/saldo-actual');
-    if (response.data.success) {
-      const saldo = parseFloat(response.data.saldo_final);
-      this.saldoCaja = isNaN(saldo) ? 0 : saldo;
-    } else {
-      console.error('Backend no devolvió un saldo válido:', response.data);
-      this.saldoCaja = 0;
-    }
-  } catch (error) {
-    console.error('Error en la solicitud al backend:', error);
-    this.saldoCaja = 0;
-  }
-},
+    handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        this.obtenerSaldoCaja()
+      }
+    },
 
-
-
-
-
-
-mounted() {
-  this.obtenerSaldoCaja()
-},
-
-
-
-async finalizarVenta() {
-    if (this.medicamentosSeleccionados.length === 0) {
+    async finalizarVenta() {
+      if (this.medicamentosSeleccionados.length === 0) {
         alert('Agregue al menos un medicamento a la venta')
         return
-    }
+      }
 
-    try {
-        // 1. Crear la venta
+      try {
         const ventaData = {
-            Cliente_ID: this.cliente.ID,
-            Monto_Total: this.totalVenta,
-            Tipo_de_Pago: this.formaPago
+          Cliente_ID: this.cliente.ID,
+          Monto_Total: this.totalVenta,
+          Tipo_de_Pago: this.formaPago
         }
         
-        console.log('Datos venta a enviar:', ventaData)
         const ventaResponse = await axios.post('/salida', ventaData)
-        console.log('Respuesta de venta:', ventaResponse.data)
 
         if (ventaResponse.data.success) {
-            const salidaId = ventaResponse.data.salida.ID
-            console.log('ID de salida obtenido:', salidaId)
+          const salidaId = ventaResponse.data.salida.ID
+          
+          const detallesData = {
+            salida_id: salidaId,
+            detalles: this.medicamentosSeleccionados.map(med => ({
+              medicamento_id: med.ID,
+              cantidad: med.cantidad
+            }))
+          }
+          
+          const detallesResponse = await axios.post('/detalle-salida/masivo', detallesData)
 
-            // 3. Crear los detalles con el nombre de campo correcto
-            const detallesData = {
-                salida_id: salidaId, // Cambiado a minúsculas
-                detalles: this.medicamentosSeleccionados.map(med => ({
-                    medicamento_id: med.ID, // Cambiado a minúsculas
-                    cantidad: med.cantidad
-                }))
-            }
-            
-            console.log('Datos detalles a enviar:', detallesData)
-            const detallesResponse = await axios.post('/detalle-salida/masivo', detallesData)
-            console.log('Respuesta de detalles:', detallesResponse.data)
-
-            if (detallesResponse.data.success) {
-                await this.obtenerSaldoCaja() // Agregar esta línea
-                alert('Venta realizada con éxito')
-                this.reiniciarFormulario()
-            }
+          if (detallesResponse.data.success) {
+            setTimeout(() => this.obtenerSaldoCaja(), 1000)
+            alert('Venta realizada con éxito')
+            this.reiniciarFormulario()
+          }
         } else {
-            throw new Error('Error al crear la venta')
+          throw new Error('Error al crear la venta')
         }
-    } catch (error) {
+      } catch (error) {
         console.error('Error al procesar la venta:', error)
-        if (error.response?.data?.message) {
-            alert(error.response.data.message)
-        } else {
-            alert('Error al procesar la venta: ' + error.message)
-        }
-    }
-},
+        alert(error.response?.data?.message || 'Error al procesar la venta: ' + error.message)
+      }
+    },
 
-reiniciarFormulario() {
-  this.cliente = {
-    DNI: '',
-    Nombre: '',
-    Apellido_Pat: '',
-    Apellido_Mat: '',
-    ID: null
-  }
-  this.clienteEncontrado = false
-  this.mostrarFormCliente = false
-  this.mostrarVenta = false
-  this.medicamentosSeleccionados = []
-  this.formaPago = 'efectivo'
-  this.totalVenta = 0
-}
+    reiniciarFormulario() {
+      this.cliente = {
+        DNI: '',
+        Nombre: '',
+        Apellido_Pat: '',
+        Apellido_Mat: '',
+        ID: null
+      }
+      this.clienteEncontrado = false
+      this.mostrarFormCliente = false
+      this.mostrarVenta = false
+      this.medicamentosSeleccionados = []
+      this.formaPago = 'efectivo'
+      this.totalVenta = 0
+    }
   }
 }
 </script>

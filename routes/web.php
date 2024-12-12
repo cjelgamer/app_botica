@@ -93,8 +93,8 @@ Route::post('/detalle-salida/masivo', [DetalleSalidaController::class, 'storeMas
 
 
 
-Route::get('/caja/saldo-actual', [CajaController::class, 'getSaldoActual']);
-
+Route::get('/caja/saldo-actual', [CajaController::class, 'getSaldoActual'])
+     ->middleware(['auth:vendedor', 'web']);
 
 });
 

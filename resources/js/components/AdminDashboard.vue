@@ -77,7 +77,7 @@
                 <router-view></router-view>
             </section>
 
-            <aside class="faq-section">
+            <aside class="faq-section" v-if="!['Vendedores', 'Laboratorios', 'Medicamento', 'RegistrarCompra', 'RegistrarVenta', 'PerfilVendedor', 'GenerarReportes'].includes($route.name)">
                 <h3>Preguntas</h3>
                 <ul>
                     <li>¿Cómo sé que estoy protegido?</li>
