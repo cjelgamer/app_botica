@@ -14,6 +14,7 @@ use App\Http\Controllers\SalidaController;
 use App\Http\Controllers\DetalleSalidaController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CajaController;
+use App\Http\Controllers\TicketController;
 use App\Models\Medicamento;
 
 // Rutas públicas
@@ -95,6 +96,9 @@ Route::post('/detalle-salida/masivo', [DetalleSalidaController::class, 'storeMas
 
 Route::get('/caja/saldo-actual', [CajaController::class, 'getSaldoActual'])
      ->middleware(['auth:vendedor', 'web']);
+
+     // routes/web.php
+Route::get('/ticket/{salidaId}', [TicketController::class, 'generarTicket']);
 
 });
 

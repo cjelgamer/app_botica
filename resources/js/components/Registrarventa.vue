@@ -10,7 +10,7 @@
     </div>
 
     <!-- Nueva sección de cliente mejorada -->
-    <div class="cliente-section">
+    <div v-if="!ventaCompletada" class="cliente-section">
       <div class="cliente-grid">
         <div class="search-container">
           <label>DNI Cliente:</label>
@@ -69,7 +69,8 @@
 
     <!-- Sección Venta -->
     <div v-if="mostrarVenta" class="venta-section">
-      <div class="medicamentos-search">
+      <!-- Solo mostrar búsqueda si la venta no está completada -->
+      <div v-if="!ventaCompletada" class="medicamentos-search">
         <input 
           v-model="busquedaMedicamento" 
           type="text" 
@@ -90,8 +91,8 @@
         </div>
       </div>
 
-      <!-- Tabla de medicamentos seleccionados -->
-      <table v-if="medicamentosSeleccionados.length" class="medicamentos-table">
+      <!-- Solo mostrar tabla si hay medicamentos y la venta no está completada -->
+      <table v-if="medicamentosSeleccionados.length && !ventaCompletada" class="medicamentos-table">
         <thead>
           <tr>
             <th>N°</th>
@@ -140,18 +141,29 @@
         </tfoot>
       </table>
 
-      <div v-if="medicamentosSeleccionados.length" class="venta-footer">
-        <div class="forma-pago">
-          <label>Forma de Pago:</label>
-          <select v-model="formaPago" class="input-field">
-            <option value="efectivo">Efectivo</option>
-            <option value="tarjeta">Tarjeta</option>
-            <option value="yape">Yape</option>
-          </select>
+      <!-- Footer modificado -->
+      <div v-if="medicamentosSeleccionados.length || ventaCompletada" class="venta-footer">
+        <div v-if="!ventaCompletada" class="venta-footer-left">
+          <div class="forma-pago">
+            <label>Forma de Pago:</label>
+            <select v-model="formaPago" class="input-field">
+              <option value="efectivo">Efectivo</option>
+              <option value="tarjeta">Tarjeta</option>
+              <option value="yape">Yape</option>
+            </select>
+          </div>
         </div>
-        <button @click="finalizarVenta" class="btn-success">
-          Finalizar Venta
-        </button>
+        <div class="venta-footer-right">
+          <button v-if="ventaCompletada" @click="imprimirTicket" class="btn-ticket">
+            <i class="fas fa-print"></i> Imprimir Ticket
+          </button>
+          <button v-if="ventaCompletada" @click="nuevaVenta" class="btn-success">
+            <i class="fas fa-plus"></i> Nueva Venta
+          </button>
+          <button v-if="!ventaCompletada" @click="finalizarVenta" class="btn-success">
+            Finalizar Venta
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -178,7 +190,9 @@ export default {
       medicamentosSeleccionados: [],
       formaPago: 'efectivo',
       totalVenta: 0,
-      saldoCaja: 0
+      saldoCaja: 0,
+      ventaCompletada: false,
+      ultimaVentaId: null
     }
   },
 
@@ -306,9 +320,6 @@ export default {
         }
 
         try {
-          // Intentamos registrar el nuevo cliente
-          console.log('Intentando registrar cliente:', this.cliente)
-          
           const response = await axios.post('/clientes', {
             DNI: this.cliente.DNI,
             Nombre: this.cliente.Nombre,
@@ -316,15 +327,11 @@ export default {
             Apellido_Mat: this.cliente.Apellido_Mat
           })
           
-          console.log('Respuesta del servidor:', response.data)
-          
           if (response.data.success && response.data.cliente) {
-            // Actualizamos el estado del cliente con la respuesta
             this.cliente = {
               ...response.data.cliente,
-              ID: response.data.cliente.ID // Aseguramos que el ID esté presente
+              ID: response.data.cliente.ID
             }
-            console.log('Cliente actualizado:', this.cliente)
             this.clienteEncontrado = true
           } else {
             throw new Error('La respuesta del servidor no contiene los datos esperados')
@@ -348,27 +355,23 @@ export default {
     },
 
     async obtenerSaldoCaja() {
-  try {
-    //console.log('Iniciando obtención de saldo...');
-    const response = await axios.get('/caja/saldo-actual')
-    //console.log('Respuesta completa:', response.data);
-    
-    if (response.data.success) {
-      const nuevoSaldo = parseFloat(response.data.saldo_final) || 0;
-      //console.log('Saldo anterior:', this.saldoCaja);
-      //console.log('Nuevo saldo:', nuevoSaldo);
-      this.saldoCaja = nuevoSaldo;
-    } else {
-      console.log('Respuesta no exitosa:', response.data);
-    }
-  } catch (error) {
-    console.error('Error detallado:', {
-      mensaje: error.message,
-      respuesta: error.response?.data,
-      status: error.response?.status
-    });
-  }
-},
+      try {
+        const response = await axios.get('/caja/saldo-actual')
+        
+        if (response.data.success) {
+          const nuevoSaldo = parseFloat(response.data.saldo_final) || 0;
+          this.saldoCaja = nuevoSaldo;
+        } else {
+          console.log('Respuesta no exitosa:', response.data);
+        }
+      } catch (error) {
+        console.error('Error detallado:', {
+          mensaje: error.message,
+          respuesta: error.response?.data,
+          status: error.response?.status
+        });
+      }
+    },
 
     handleVisibilityChange() {
       if (document.visibilityState === 'visible') {
@@ -393,6 +396,7 @@ export default {
 
         if (ventaResponse.data.success) {
           const salidaId = ventaResponse.data.salida.ID
+          this.ultimaVentaId = salidaId
           
           const detallesData = {
             salida_id: salidaId,
@@ -406,8 +410,10 @@ export default {
 
           if (detallesResponse.data.success) {
             setTimeout(() => this.obtenerSaldoCaja(), 1000)
+            this.ventaCompletada = true
+            this.medicamentosSeleccionados = []
+            this.totalVenta = 0
             alert('Venta realizada con éxito')
-            this.reiniciarFormulario()
           }
         } else {
           throw new Error('Error al crear la venta')
@@ -416,6 +422,37 @@ export default {
         console.error('Error al procesar la venta:', error)
         alert(error.response?.data?.message || 'Error al procesar la venta: ' + error.message)
       }
+    },
+
+    async imprimirTicket() {
+      if (this.ultimaVentaId) {
+        try {
+          // Hacer la petición como blob para obtener el PDF
+          const response = await axios.get(`/ticket/${this.ultimaVentaId}`, {
+            responseType: 'blob'
+          });
+          
+          // Crear URL del blob
+          const blob = new Blob([response.data], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          
+          // Abrir en nueva pestaña
+          const link = document.createElement('a');
+          link.href = url;
+          link.target = '_blank';
+          link.click();
+          
+          // Liberar el objeto URL
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error('Error al generar ticket:', error);
+          alert('Error al generar el ticket');
+        }
+      }
+    },
+
+    nuevaVenta() {
+      this.reiniciarFormulario()
     },
 
     reiniciarFormulario() {
@@ -432,6 +469,8 @@ export default {
       this.medicamentosSeleccionados = []
       this.formaPago = 'efectivo'
       this.totalVenta = 0
+      this.ventaCompletada = false
+      this.ultimaVentaId = null
     }
   }
 }
@@ -718,6 +757,53 @@ export default {
   justify-content: space-between;
   align-items: center;
 }
+
+
+.venta-footer-left {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.venta-footer-right {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.btn-ticket {
+  background-color: #6c757d;
+  color: white;
+  padding: 0.35rem 1rem;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-ticket:hover {
+  background-color: #5a6268;
+}
+
+@media (max-width: 768px) {
+  .venta-footer-right {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .btn-ticket, .btn-success {
+    width: 100%;
+  }
+}
+
 
 .text-right {
   text-align: right;
