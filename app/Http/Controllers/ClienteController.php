@@ -103,4 +103,37 @@ class ClienteController extends Controller
             ], 500);
         }
     }
+
+    public function obtenerClienteGeneral()
+{
+    try {
+        // Buscar cliente con DNI null
+        $cliente = Cliente::whereNull('DNI')
+                        ->whereNull('Nombre')
+                        ->whereNull('Apellido_Pat')
+                        ->whereNull('Apellido_Mat')
+                        ->first();
+
+        if (!$cliente) {
+            // Si no existe, crear el cliente general
+            $cliente = Cliente::create([
+                'DNI' => null,
+                'Nombre' => null,
+                'Apellido_Pat' => null,
+                'Apellido_Mat' => null
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'cliente' => $cliente
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener cliente general: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }

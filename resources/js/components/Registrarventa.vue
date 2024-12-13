@@ -25,10 +25,13 @@
             <button @click="buscarCliente" class="search-btn">
               <i class="fas fa-search"></i> Buscar
             </button>
+            <button @click="usarClienteGeneral" class="btn-general">
+              <i class="fas fa-users"></i> Cliente General
+            </button>
           </div>
         </div>
 
-        <div v-if="mostrarFormCliente" class="cliente-datos">
+        <div v-if="mostrarFormCliente && !clienteGeneral" class="cliente-datos">
           <div class="input-row">
             <div class="input-group">
               <label>Nombre:</label>
@@ -192,7 +195,8 @@ export default {
       totalVenta: 0,
       saldoCaja: 0,
       ventaCompletada: false,
-      ultimaVentaId: null
+      ultimaVentaId: null,
+      clienteGeneral: false // Nueva propiedad para controlar el cliente general
     }
   },
 
@@ -206,9 +210,63 @@ export default {
   },
 
   methods: {
+    // Nuevo método para cliente general
+    async usarClienteGeneral() {
+      try {
+        // Buscar el cliente con DNI null
+        const response = await axios.get('/clientes/general')
+        
+        if (response.data.success && response.data.cliente) {
+          const clienteData = response.data.cliente
+          this.cliente = {
+            DNI: null,
+            Nombre: null,
+            Apellido_Pat: null,
+            Apellido_Mat: null,
+            ID: clienteData.ID
+          }
+          this.clienteEncontrado = true
+          this.clienteGeneral = true
+          this.mostrarFormCliente = false // Ocultamos el formulario
+          this.mostrarVenta = true // Mostramos directamente la sección de venta
+        } else {
+          // Si no existe el cliente general, lo creamos
+          const createResponse = await axios.post('/clientes', {
+            DNI: null,
+            Nombre: null,
+            Apellido_Pat: null,
+            Apellido_Mat: null
+          })
+
+          if (createResponse.data.success && createResponse.data.cliente) {
+            this.cliente = {
+              DNI: null,
+              Nombre: null,
+              Apellido_Pat: null,
+              Apellido_Mat: null,
+              ID: createResponse.data.cliente.ID
+            }
+            this.clienteEncontrado = true
+            this.clienteGeneral = true
+            this.mostrarFormCliente = false
+            this.mostrarVenta = true
+          }
+        }
+      } catch (error) {
+        console.error('Error al obtener cliente general:', error)
+        alert('Error al procesar cliente general')
+      }
+    },
+
     async buscarCliente() {
       if (!this.cliente.DNI) {
         alert('Por favor ingrese un DNI')
+        return
+      }
+
+      // Si el DNI es '0', usar cliente general
+      if (this.cliente.DNI === '0') {
+        await this.usarClienteGeneral()
         return
       }
       
@@ -226,8 +284,10 @@ export default {
           }
           this.clienteEncontrado = true
           this.mostrarVenta = true
+          this.clienteGeneral = false
         } else {
           this.clienteEncontrado = false
+          this.clienteGeneral = false
           this.cliente = {
             DNI: this.cliente.DNI,
             Nombre: '',
@@ -240,6 +300,7 @@ export default {
       } catch (error) {
         console.error('Error al buscar cliente:', error)
         this.clienteEncontrado = false
+        this.clienteGeneral = false
         this.mostrarFormCliente = true
         if (error.response?.status === 404) {
           this.cliente = {
@@ -255,6 +316,69 @@ export default {
       }
     },
 
+    async continuarAVenta() {
+      if (!this.clienteEncontrado && !this.clienteGeneral) {
+        if (!this.cliente.DNI || !this.cliente.Nombre || 
+            !this.cliente.Apellido_Pat || !this.cliente.Apellido_Mat) {
+          alert('Por favor complete todos los campos del cliente')
+          return
+        }
+
+        try {
+          const response = await axios.post('/clientes', {
+            DNI: this.cliente.DNI,
+            Nombre: this.cliente.Nombre,
+            Apellido_Pat: this.cliente.Apellido_Pat,
+            Apellido_Mat: this.cliente.Apellido_Mat
+          })
+          
+          if (response.data.success && response.data.cliente) {
+            this.cliente = {
+              ...response.data.cliente,
+              ID: response.data.cliente.ID
+            }
+            this.clienteEncontrado = true
+          } else {
+            throw new Error('La respuesta del servidor no contiene los datos esperados')
+          }
+          
+        } catch (error) {
+          console.error('Error completo:', error)
+          console.error('Response data:', error.response?.data)
+          alert('Error al procesar el cliente: ' + (error.response?.data?.message || error.message))
+          return
+        }
+      }
+
+      if (!this.cliente.ID) {
+        console.error('No hay ID de cliente después del proceso:', this.cliente)
+        alert('Error: No se pudo obtener el ID del cliente')
+        return
+      }
+      
+      this.mostrarVenta = true
+    },
+
+    reiniciarFormulario() {
+      this.cliente = {
+        DNI: '',
+        Nombre: '',
+        Apellido_Pat: '',
+        Apellido_Mat: '',
+        ID: null
+      }
+      this.clienteEncontrado = false
+      this.mostrarFormCliente = false
+      this.mostrarVenta = false
+      this.medicamentosSeleccionados = []
+      this.formaPago = 'efectivo'
+      this.totalVenta = 0
+      this.ventaCompletada = false
+      this.ultimaVentaId = null
+      this.clienteGeneral = false
+    },
+
+    // ... resto de métodos existentes sin cambios ...
     async filtrarMedicamentos() {
       if (this.busquedaMedicamento.length < 2) {
         this.medicamentosFiltrados = []
@@ -309,49 +433,6 @@ export default {
         (total, med) => total + (med.Precio * med.cantidad),
         0
       )
-    },
-
-    async continuarAVenta() {
-      if (!this.clienteEncontrado) {
-        if (!this.cliente.DNI || !this.cliente.Nombre || 
-            !this.cliente.Apellido_Pat || !this.cliente.Apellido_Mat) {
-          alert('Por favor complete todos los campos del cliente')
-          return
-        }
-
-        try {
-          const response = await axios.post('/clientes', {
-            DNI: this.cliente.DNI,
-            Nombre: this.cliente.Nombre,
-            Apellido_Pat: this.cliente.Apellido_Pat,
-            Apellido_Mat: this.cliente.Apellido_Mat
-          })
-          
-          if (response.data.success && response.data.cliente) {
-            this.cliente = {
-              ...response.data.cliente,
-              ID: response.data.cliente.ID
-            }
-            this.clienteEncontrado = true
-          } else {
-            throw new Error('La respuesta del servidor no contiene los datos esperados')
-          }
-          
-        } catch (error) {
-          console.error('Error completo:', error)
-          console.error('Response data:', error.response?.data)
-          alert('Error al procesar el cliente: ' + (error.response?.data?.message || error.message))
-          return
-        }
-      }
-
-      if (!this.cliente.ID) {
-        console.error('No hay ID de cliente después del proceso:', this.cliente)
-        alert('Error: No se pudo obtener el ID del cliente')
-        return
-      }
-      
-      this.mostrarVenta = true
     },
 
     async obtenerSaldoCaja() {
@@ -427,22 +508,18 @@ export default {
     async imprimirTicket() {
       if (this.ultimaVentaId) {
         try {
-          // Hacer la petición como blob para obtener el PDF
           const response = await axios.get(`/ticket/${this.ultimaVentaId}`, {
             responseType: 'blob'
           });
           
-          // Crear URL del blob
           const blob = new Blob([response.data], { type: 'application/pdf' });
           const url = window.URL.createObjectURL(blob);
           
-          // Abrir en nueva pestaña
           const link = document.createElement('a');
           link.href = url;
           link.target = '_blank';
           link.click();
           
-          // Liberar el objeto URL
           window.URL.revokeObjectURL(url);
         } catch (error) {
           console.error('Error al generar ticket:', error);
@@ -453,24 +530,6 @@ export default {
 
     nuevaVenta() {
       this.reiniciarFormulario()
-    },
-
-    reiniciarFormulario() {
-      this.cliente = {
-        DNI: '',
-        Nombre: '',
-        Apellido_Pat: '',
-        Apellido_Mat: '',
-        ID: null
-      }
-      this.clienteEncontrado = false
-      this.mostrarFormCliente = false
-      this.mostrarVenta = false
-      this.medicamentosSeleccionados = []
-      this.formaPago = 'efectivo'
-      this.totalVenta = 0
-      this.ventaCompletada = false
-      this.ultimaVentaId = null
     }
   }
 }
@@ -478,7 +537,7 @@ export default {
 
 <style scoped>
 .form-container {
-  max-width: 1400px;  /* Aumentado de 1000px */
+  max-width: 1400px;
   margin: 0 auto;
   padding: 15px;
 }
@@ -529,27 +588,26 @@ export default {
   gap: 0.75rem;
 }
 
-/* Ajustar el contenedor de búsqueda */
 .search-container {
   width: 100%;
-  max-width: 100%;  /* Eliminado el límite de 350px */
+  max-width: 100%;
   margin-bottom: 0.5rem;
 }
-
 
 .search-group {
   display: flex;
   gap: 0.35rem;
   margin-top: 0.25rem;
+  flex-wrap: wrap; /* Agregado para mejor respuesta en móviles */
 }
 
 .search-input {
   flex: 1;
-  padding: 0.35rem 0.5rem;  /* Reducido el padding vertical */
+  padding: 0.35rem 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 0.9rem;
-  height: 32px;  /* Altura fija más compacta */
+  height: 32px;
 }
 
 .search-btn {
@@ -564,11 +622,31 @@ export default {
   gap: 0.35rem;
   font-weight: 600;
   transition: background-color 0.2s;
-  height: 32px;  /* Altura fija más compacta */
+  height: 32px;
 }
 
 .search-btn:hover {
   background-color: #45a049;
+}
+
+/* Nuevo estilo para el botón de cliente general */
+.btn-general {
+  padding: 0.35rem 1rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+  height: 32px;
+}
+
+.btn-general:hover {
+  background-color: #5a6268;
 }
 
 .cliente-datos {
@@ -577,23 +655,23 @@ export default {
   padding: 0.75rem;
   border-radius: 6px;
   border: 1px solid #e9ecef;
-  display: flex;  /* Agregado */
-  align-items: center;  /* Agregado */
-  gap: 1rem;  /* Agregado */
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .input-row {
   display: flex;
-  flex: 1;  /* Agregado */
+  flex: 1;
   gap: 1rem;
-  align-items: center;  /* Agregado */
-  margin-bottom: 0;  /* Modificado */
+  align-items: center;
+  margin-bottom: 0;
 }
 
 .input-group {
   display: flex;
-  flex-direction: row;  /* Cambiado a row */
-  align-items: center;  /* Agregado */
+  flex-direction: row;
+  align-items: center;
   gap: 0.5rem;
   flex: 1;
 }
@@ -602,12 +680,12 @@ export default {
   font-weight: 600;
   color: #495057;
   font-size: 0.85rem;
-  white-space: nowrap;  /* Agregado */
-  margin-right: 0.5rem;  /* Agregado */
+  white-space: nowrap;
+  margin-right: 0.5rem;
 }
 
 .input-group input {
-  flex: 1;  /* Agregado */
+  flex: 1;
   height: 32px;
   padding: 0.35rem 0.5rem;
   border: 1px solid #ddd;
@@ -623,8 +701,8 @@ export default {
 
 .actions-row {
   display: flex;
-  margin: 0;  /* Modificado */
-  align-items: center;  /* Agregado */
+  margin: 0;
+  align-items: center;
 }
 
 .btn-continuar {
@@ -640,18 +718,14 @@ export default {
   font-weight: 600;
   transition: background-color 0.2s;
   height: 32px;
-  white-space: nowrap;  /* Agregado */
-  height: 32px;
+  white-space: nowrap;
   padding: 0 1.25rem;
-  display: flex;
-  align-items: center;  /* Altura fija más compacta */
 }
 
 .btn-continuar:hover {
   background-color: #1976D2;
 }
 
-/* Estilos para la sección de venta */
 .venta-section {
   background-color: white;
   padding: 12px;
@@ -682,7 +756,7 @@ export default {
   cursor: pointer;
   border-bottom: 1px solid #eee;
   font-size: 0.9rem;
-  height: 28px;  /* Altura fija más compacta */
+  height: 28px;
   line-height: 20px;
 }
 
@@ -699,11 +773,11 @@ export default {
 
 .medicamentos-table th,
 .medicamentos-table td {
-  padding: 6px 8px;  /* Reducido el padding vertical */
+  padding: 6px 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
   font-size: 0.9rem;
-  height: 32px;  /* Altura fija más compacta */
+  height: 32px;
 }
 
 .medicamentos-table th {
@@ -735,7 +809,7 @@ export default {
   padding: 2px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  height: 24px;  /* Altura fija más compacta */
+  height: 24px;
 }
 
 .btn-delete {
@@ -744,7 +818,7 @@ export default {
   border: none;
   cursor: pointer;
   font-size: 14px;
-  height: 24px;  /* Altura fija más compacta */
+  height: 24px;
 }
 
 .venta-footer {
@@ -757,7 +831,6 @@ export default {
   justify-content: space-between;
   align-items: center;
 }
-
 
 .venta-footer-left {
   display: flex;
@@ -791,20 +864,6 @@ export default {
   background-color: #5a6268;
 }
 
-@media (max-width: 768px) {
-  .venta-footer-right {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 0.5rem;
-  }
-
-  .btn-ticket, .btn-success {
-    width: 100%;
-  }
-}
-
-
 .text-right {
   text-align: right;
 }
@@ -819,7 +878,7 @@ export default {
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s;
-  height: 32px;  /* Altura fija más compacta */
+  height: 32px;
 }
 
 .input-field {
@@ -828,7 +887,7 @@ export default {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 13px;
-  height: 32px;  /* Altura fija más compacta */
+  height: 32px;
 }
 
 @media (max-width: 768px) {
@@ -845,13 +904,26 @@ export default {
     flex-direction: column;
   }
   
-  .search-btn {
+  .search-btn,
+  .btn-general {  /* Agregado para el botón de cliente general */
     width: 100%;
   }
   
   .venta-footer {
     flex-direction: column;
     gap: 0.75rem;
+  }
+  
+  .venta-footer-right {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .btn-ticket,
+  .btn-success {
+    width: 100%;
   }
 }
 </style>

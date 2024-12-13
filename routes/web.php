@@ -87,6 +87,8 @@ Route::group(['middleware' => ['web']], function () {
     Route::post('/clientes', [ClienteController::class, 'store']);
 Route::get('/clientes/buscar/{dni}', [ClienteController::class, 'buscarPorDNI']);
 Route::get('/clientes', [ClienteController::class, 'index']);
+Route::get('/clientes/general', [ClienteController::class, 'obtenerClienteGeneral']);
+
 
 Route::post('/salida', [SalidaController::class, 'store']);
 Route::post('/detalle-salida', [DetalleSalidaController::class, 'store']);
@@ -99,6 +101,8 @@ Route::get('/caja/saldo-actual', [CajaController::class, 'getSaldoActual'])
 
      // routes/web.php
 Route::get('/ticket/{salidaId}', [TicketController::class, 'generarTicket']);
+
+
 
 });
 
