@@ -275,11 +275,9 @@ export default {
 
 .main-section {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     background-color: white;
     padding: 20px;
+    align-items: center; 
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-right: 20px;

@@ -4,7 +4,7 @@
     <div class="header-section">
       <h2>Realizar Venta</h2>
       <div class="saldo-display">
-        <span class="saldo-label">Saldo Actual:</span>
+        <span class="saldo-label">Dinero en Caja:</span>
         <span class="saldo-monto">S/. {{ saldoCaja.toFixed(2) }}</span>
       </div>
     </div>
@@ -348,15 +348,27 @@ export default {
     },
 
     async obtenerSaldoCaja() {
-      try {
-        const response = await axios.get('/caja/saldo-actual')
-        if (response.data.success) {
-          this.saldoCaja = parseFloat(response.data.saldo_final) || 0
-        }
-      } catch (error) {
-        console.error('Error al obtener saldo:', error)
-      }
-    },
+  try {
+    //console.log('Iniciando obtención de saldo...');
+    const response = await axios.get('/caja/saldo-actual')
+    //console.log('Respuesta completa:', response.data);
+    
+    if (response.data.success) {
+      const nuevoSaldo = parseFloat(response.data.saldo_final) || 0;
+      //console.log('Saldo anterior:', this.saldoCaja);
+      //console.log('Nuevo saldo:', nuevoSaldo);
+      this.saldoCaja = nuevoSaldo;
+    } else {
+      console.log('Respuesta no exitosa:', response.data);
+    }
+  } catch (error) {
+    console.error('Error detallado:', {
+      mensaje: error.message,
+      respuesta: error.response?.data,
+      status: error.response?.status
+    });
+  }
+},
 
     handleVisibilityChange() {
       if (document.visibilityState === 'visible') {

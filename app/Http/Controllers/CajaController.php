@@ -11,44 +11,52 @@ class CajaController extends Controller
     public function getSaldoActual(Request $request)
     {
         try {
+            date_default_timezone_set('America/Lima');
+            $fechaActual = date('Y-m-d');
             $vendedor = Auth::guard('vendedor')->user();
             
-            // Agregar log para debug
-            Log::info('Vendedor en sesión:', [
-                'vendedor_id' => $vendedor ? $vendedor->ID : null
+            Log::info('Iniciando consulta de caja:', [
+                'vendedor_id' => $vendedor ? $vendedor->ID : null,
+                'fecha' => $fechaActual
             ]);
-
+    
             if (!$vendedor) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No se encontró el vendedor en sesión'
                 ], 401);
             }
-
-            // Usar ID mayúscula consistentemente
-            $saldoActual = Caja::whereDate('Fecha', date('Y-m-d'))
+    
+            // Obtener solo el registro del día actual
+            $saldoActual = Caja::whereDate('Fecha', $fechaActual)
                              ->where('Vendedor_ID', $vendedor->ID)
-                             ->orderBy('ID', 'desc') // Usar ID en mayúscula
+                             ->orderBy('ID', 'desc')
                              ->first();
-
-            // Log para debug
-            Log::info('Consulta de saldo:', [
-                'fecha' => date('Y-m-d'),
-                'vendedor_id' => $vendedor->ID,
-                'saldo' => $saldoActual ? $saldoActual->Saldo_Final : 0
-            ]);
-
+    
+            // Si no hay registro del día actual, devolver 0
+            if (!$saldoActual) {
+                return response()->json([
+                    'success' => true,
+                    'saldo_final' => 0,
+                    'vendedor_id' => $vendedor->ID,
+                    'fecha_saldo' => $fechaActual
+                ]);
+            }
+    
+            // Si hay registro del día actual, retornar ese saldo
             return response()->json([
                 'success' => true,
-                'saldo_final' => $saldoActual ? $saldoActual->Saldo_Final : 0,
-                'vendedor_id' => $vendedor->ID // Agregar para debug
+                'saldo_final' => $saldoActual->Saldo_Final,
+                'vendedor_id' => $vendedor->ID,
+                'fecha_saldo' => $saldoActual->Fecha
             ]);
+    
         } catch (\Exception $e) {
             Log::error('Error en getSaldoActual:', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-
+    
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener saldo',
