@@ -315,6 +315,20 @@ input:checked + .slider:before {
   color: #fff;
 }
 
+.add-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Estilos de los botones de acciones */
 .edit-button, .delete-button, .password-button {
   border: none;
