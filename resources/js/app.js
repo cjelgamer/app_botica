@@ -12,6 +12,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import RegistrarVenta from './components/Registrarventa.vue';
 import GenerarReportes from './components/GenerarReportes.vue';
 import VendedorDashboard from "/resources/js/components/VendedorDashboard.vue";
+import MedicamentoVendedor from './components/MedicamentoVendedor.vue';
 // Configuración global de axios
 /*axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.withCredentials = true; 
@@ -54,7 +55,7 @@ const routes = [
             { 
                 path: 'medicamentos', 
                 name: 'VendedorMedicamento', 
-                component: Medicamento 
+                component: MedicamentoVendedor 
             },
             { 
                 path: 'registrar-venta', 
