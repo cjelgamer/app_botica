@@ -82,7 +82,9 @@
     <div v-if="!ventaCompletada" class="cliente-section">
       <div class="cliente-grid">
         <div class="dni-container">
-          <label for="dni-input">DNI Cliente:</label>
+          <label for="dni-input">
+            <i class="fas fa-id-card dni-icon"></i> DNI Cliente:
+          </label>
           <div class="search-group">
             <input 
               id="dni-input"
@@ -1208,6 +1210,14 @@ export default {
   color: #495057;
   font-size: 0.85rem;
 }
+
+.dni-icon {
+  color: #4A9DEC; /* Color azul (puedes cambiarlo) */
+  margin-right: 0.35rem; /* Espacio entre el ícono y el texto */
+  font-size: 1.2rem; /* Tamaño del ícono */
+  vertical-align: middle; /* Alineación con el texto */
+}
+
 
 /* Estilos para el grupo de búsqueda */
 .search-group {
