@@ -724,6 +724,12 @@ export default {
   color: #2ecc71;
 }
 
+.saldo-icon {
+  color: #333; /* Color verde para el billete */
+  font-size: 1.2rem; /* Ajusta el tamaño del icono */
+  margin-right: 0.45rem; /* Espacio entre el ícono y el monto */
+}
+
 .cliente-section {
   background-color: white;
   border-radius: 8px;
