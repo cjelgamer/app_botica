@@ -12,7 +12,6 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import RegistrarVenta from './components/Registrarventa.vue';
 import GenerarReportes from './components/GenerarReportes.vue';
 import VendedorDashboard from "/resources/js/components/VendedorDashboard.vue";
-
 // Configuración global de axios
 /*axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.withCredentials = true; 

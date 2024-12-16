@@ -93,7 +93,8 @@ Route::get('/clientes/general', [ClienteController::class, 'obtenerClienteGenera
 Route::post('/salida', [SalidaController::class, 'store']);
 Route::post('/detalle-salida', [DetalleSalidaController::class, 'store']);
 Route::post('/detalle-salida/masivo', [DetalleSalidaController::class, 'storeMasivo']);
-
+Route::get('/ventas/historial', [SalidaController::class, 'getHistorialVentas'])
+    ->name('ventas.historial');
 
 
 Route::get('/caja/saldo-actual', [CajaController::class, 'getSaldoActual'])

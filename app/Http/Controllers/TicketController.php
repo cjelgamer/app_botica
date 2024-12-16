@@ -10,6 +10,13 @@ use PDF;
 
 class TicketController extends Controller
 {
+    public function __construct()
+    {
+        // Establecer la zona horaria para todas las operaciones de Carbon
+        Carbon::setLocale('es');
+        date_default_timezone_set('America/Lima');
+    }
+
     public function generarTicket($salidaId)
     {
         // Obtener datos de la venta con relaciones
@@ -19,8 +26,12 @@ class TicketController extends Controller
             'vendedor'
         ])->findOrFail($salidaId);
         
-        // Formatear la fecha usando Carbon para asegurar el formato correcto
-        $fecha = $venta->created_at ? Carbon::parse($venta->created_at)->format('d/m/Y H:i:s') : date('d/m/Y H:i:s');
+        // Formatear la fecha usando Carbon con zona horaria de Perú
+        $fecha = $venta->created_at 
+            ? Carbon::parse($venta->created_at)
+                ->setTimezone('America/Lima')
+                ->format('d/m/Y H:i:s')
+            : Carbon::now('America/Lima')->format('d/m/Y H:i:s');
         
         // Configurar datos para el ticket
         $ticketData = [

@@ -6,6 +6,7 @@ use App\Models\Salida;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class SalidaController extends Controller
 {
@@ -33,7 +34,7 @@ class SalidaController extends Controller
                 'Cliente_ID' => $request->Cliente_ID,
                 'Monto_Total' => $request->Monto_Total,
                 'Tipo_de_Pago' => $request->Tipo_de_Pago,
-                'Fecha_Venta' => now()->format('Y-m-d')
+                'Fecha_Venta' => Carbon::now('America/Lima')->format('Y-m-d')  // Ajustamos a la zona horaria correcta
             ]);
     
             DB::commit();
@@ -58,6 +59,48 @@ class SalidaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al registrar la venta: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getHistorialVentas(Request $request)
+    {
+        try {
+            $vendedor = Auth::guard('vendedor')->user();
+            if (!$vendedor) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No autorizado'
+                ], 401);
+            }
+    
+            $ventas = Salida::select('ID', 'Fecha_Venta', 'Monto_Total', 'Tipo_de_Pago')
+                ->where('Vendedor_ID', $vendedor->ID)
+                ->orderBy('Fecha_Venta', 'desc')
+                ->get()
+                ->map(function ($venta) {
+                    return [
+                        'id' => $venta->ID,
+                        'fecha' => date('Y-m-d', strtotime($venta->Fecha_Venta)), // Formateamos la fecha
+                        'monto_total' => floatval($venta->Monto_Total),
+                        'tipo_pago' => $venta->Tipo_de_Pago
+                    ];
+                });
+    
+            return response()->json([
+                'success' => true,
+                'ventas' => $ventas
+            ]);
+    
+        } catch (\Exception $e) {
+            \Log::error('Error en historial:', [
+                'mensaje' => $e->getMessage(),
+                'linea' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
     }

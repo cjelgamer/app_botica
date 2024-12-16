@@ -9,13 +9,80 @@
       </div>
     </div>
 
+    <!-- Nueva sección de Historial de Ventas -->
+    <div class="historial-section">
+      <div class="historial-header">
+        <h3>Historial de Ventas</h3>
+        <div class="filtros">
+          <div class="input-group">
+            <label>Fecha:</label>
+            <input 
+              type="date" 
+              v-model="filtroFecha" 
+              class="input-field"
+              :max="fechaActual"
+            />
+          </div>
+          <!--<button @click="cargarVentas" class="btn-refresh">
+            <i class="fas fa-sync-alt"></i> Actualizar
+          </button>-->
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="ventas-table" v-if="ventas.length">
+          <thead>
+            <tr>
+              <th>Nro Venta</th>
+              <th>Fecha</th>
+              <!--<th>Cliente</th>-->
+              <th>Tipo Pago</th>
+              <th>Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="venta in ventasFiltradas" :key="venta.id">
+              <tr>
+                <td>{{ venta.id }}</td>
+                <td>{{ formatearFecha(venta.fecha) }}</td>
+                <!--<td>
+                  <span v-if="venta.cliente">
+                    {{ venta.cliente.nombre }} {{ venta.cliente.apellido_pat }}
+                    <br>
+                    <small>DNI: {{ venta.cliente.dni || 'Cliente General' }}</small>
+                  </span>
+                  <span v-else>Cliente General</span>
+                </td>-->
+                <td>
+                  <span :class="'tipo-pago-' + venta.tipo_pago.toLowerCase()">
+                    {{ venta.tipo_pago }}
+                  </span>
+                </td>
+                <td>S/. {{ venta.monto_total.toFixed(2) }}</td>
+                <td>
+                  <button @click="reimprimirTicket(venta.id)" class="btn-reprint">
+                    <i class="fas fa-print"></i>
+                  </button>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+        <div v-else class="no-data">
+          No se encontraron ventas para mostrar
+        </div>
+      </div>
+    </div>
+
     <!-- Nueva sección de cliente mejorada -->
     <div v-if="!ventaCompletada" class="cliente-section">
       <div class="cliente-grid">
-        <div class="search-container">
-          <label>DNI Cliente:</label>
+        <div class="dni-container">
+          <label for="dni-input">DNI Cliente:</label>
           <div class="search-group">
             <input 
+              id="dni-input"
               v-model="cliente.DNI" 
               @keyup.enter="buscarCliente"
               type="text" 
@@ -178,6 +245,7 @@ import axios from 'axios'
 export default {
   data() {
     return {
+      // Propiedades existentes
       cliente: {
         DNI: '',
         Nombre: '',
@@ -196,12 +264,28 @@ export default {
       saldoCaja: 0,
       ventaCompletada: false,
       ultimaVentaId: null,
-      clienteGeneral: false // Nueva propiedad para controlar el cliente general
+      clienteGeneral: false,
+
+      // Nuevas propiedades para el historial
+      ventas: [],
+      detallesAbiertos: null,
+      filtroFecha: new Date().toISOString().split('T')[0],
+      fechaActual: new Date().toISOString().split('T')[0]
+    }
+  },
+
+  computed: {
+    ventasFiltradas() {
+      if (!this.filtroFecha) return this.ventas;
+      return this.ventas.filter(venta => 
+        venta.fecha === this.filtroFecha
+      )
     }
   },
 
   mounted() {
     this.obtenerSaldoCaja();
+    this.cargarVentas();
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
   },
 
@@ -210,10 +294,111 @@ export default {
   },
 
   methods: {
-    // Nuevo método para cliente general
+    // Nuevos métodos para el historial
+    async cargarVentas() {
+      try {
+        const response = await axios.get('/ventas/historial')
+        if (response.data.success) {
+          this.ventas = response.data.ventas
+        }
+      } catch (error) {
+        console.error('Error al cargar ventas:', error)
+        alert('Error al cargar el historial de ventas')
+      }
+    },
+
+    toggleDetalles(ventaId) {
+      this.detallesAbiertos = this.detallesAbiertos === ventaId ? null : ventaId
+    },
+
+    formatearFecha(fecha) {
+  // Asegurarse de que la fecha se interprete en la zona horaria local
+  const [year, month, day] = fecha.split('-');
+  const date = new Date(year, month - 1, day);
+  
+  // Usar el formato específico para Perú
+  return date.toLocaleDateString('es-PE', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'America/Lima' // Especificar la zona horaria de Perú
+  });
+},
+
+
+    async reimprimirTicket(ventaId) {
+      try {
+        const response = await axios.get(`/ticket/${ventaId}`, {
+          responseType: 'blob'
+        });
+        
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.click();
+        
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error al generar ticket:', error);
+        alert('Error al generar el ticket');
+      }
+    },
+
+    // Método existente modificado para actualizar el historial
+    async finalizarVenta() {
+      if (this.medicamentosSeleccionados.length === 0) {
+        alert('Agregue al menos un medicamento a la venta')
+        return
+      }
+
+      try {
+        const ventaData = {
+          Cliente_ID: this.cliente.ID,
+          Monto_Total: this.totalVenta,
+          Tipo_de_Pago: this.formaPago
+        }
+        
+        const ventaResponse = await axios.post('/salida', ventaData)
+
+        if (ventaResponse.data.success) {
+          const salidaId = ventaResponse.data.salida.ID
+          this.ultimaVentaId = salidaId
+          
+          const detallesData = {
+            salida_id: salidaId,
+            detalles: this.medicamentosSeleccionados.map(med => ({
+              medicamento_id: med.ID,
+              cantidad: med.cantidad
+            }))
+          }
+          
+          const detallesResponse = await axios.post('/detalle-salida/masivo', detallesData)
+
+          if (detallesResponse.data.success) {
+            setTimeout(() => {
+              this.obtenerSaldoCaja();
+              this.cargarVentas(); // Actualizamos el historial
+            }, 1000)
+            this.ventaCompletada = true
+            this.medicamentosSeleccionados = []
+            this.totalVenta = 0
+            alert('Venta realizada con éxito')
+          }
+        } else {
+          throw new Error('Error al crear la venta')
+        }
+      } catch (error) {
+        console.error('Error al procesar la venta:', error)
+        alert(error.response?.data?.message || 'Error al procesar la venta: ' + error.message)
+      }
+    },
+
+    // Resto de métodos existentes sin cambios
     async usarClienteGeneral() {
       try {
-        // Buscar el cliente con DNI null
         const response = await axios.get('/clientes/general')
         
         if (response.data.success && response.data.cliente) {
@@ -227,10 +412,9 @@ export default {
           }
           this.clienteEncontrado = true
           this.clienteGeneral = true
-          this.mostrarFormCliente = false // Ocultamos el formulario
-          this.mostrarVenta = true // Mostramos directamente la sección de venta
+          this.mostrarFormCliente = false
+          this.mostrarVenta = true
         } else {
-          // Si no existe el cliente general, lo creamos
           const createResponse = await axios.post('/clientes', {
             DNI: null,
             Nombre: null,
@@ -264,7 +448,6 @@ export default {
         return
       }
 
-      // Si el DNI es '0', usar cliente general
       if (this.cliente.DNI === '0') {
         await this.usarClienteGeneral()
         return
@@ -378,7 +561,6 @@ export default {
       this.clienteGeneral = false
     },
 
-    // ... resto de métodos existentes sin cambios ...
     async filtrarMedicamentos() {
       if (this.busquedaMedicamento.length < 2) {
         this.medicamentosFiltrados = []
@@ -457,51 +639,6 @@ export default {
     handleVisibilityChange() {
       if (document.visibilityState === 'visible') {
         this.obtenerSaldoCaja()
-      }
-    },
-
-    async finalizarVenta() {
-      if (this.medicamentosSeleccionados.length === 0) {
-        alert('Agregue al menos un medicamento a la venta')
-        return
-      }
-
-      try {
-        const ventaData = {
-          Cliente_ID: this.cliente.ID,
-          Monto_Total: this.totalVenta,
-          Tipo_de_Pago: this.formaPago
-        }
-        
-        const ventaResponse = await axios.post('/salida', ventaData)
-
-        if (ventaResponse.data.success) {
-          const salidaId = ventaResponse.data.salida.ID
-          this.ultimaVentaId = salidaId
-          
-          const detallesData = {
-            salida_id: salidaId,
-            detalles: this.medicamentosSeleccionados.map(med => ({
-              medicamento_id: med.ID,
-              cantidad: med.cantidad
-            }))
-          }
-          
-          const detallesResponse = await axios.post('/detalle-salida/masivo', detallesData)
-
-          if (detallesResponse.data.success) {
-            setTimeout(() => this.obtenerSaldoCaja(), 1000)
-            this.ventaCompletada = true
-            this.medicamentosSeleccionados = []
-            this.totalVenta = 0
-            alert('Venta realizada con éxito')
-          }
-        } else {
-          throw new Error('Error al crear la venta')
-        }
-      } catch (error) {
-        console.error('Error al procesar la venta:', error)
-        alert(error.response?.data?.message || 'Error al procesar la venta: ' + error.message)
       }
     },
 
@@ -588,6 +725,7 @@ export default {
   gap: 0.75rem;
 }
 
+
 .search-container {
   width: 100%;
   max-width: 100%;
@@ -608,6 +746,13 @@ export default {
   border-radius: 4px;
   font-size: 0.9rem;
   height: 32px;
+}
+
+.search-input :hover,
+.search-input :focus {
+  border: 2px solid #4A9DEC;
+  box-shadow: 0px 0px 0px 7px rgb(74, 157, 236, 20%);
+  background-color: white;
 }
 
 .search-btn {
@@ -660,6 +805,7 @@ export default {
   gap: 1rem;
 }
 
+
 .input-row {
   display: flex;
   flex: 1;
@@ -667,6 +813,8 @@ export default {
   align-items: center;
   margin-bottom: 0;
 }
+
+
 
 .input-group {
   display: flex;
@@ -684,6 +832,7 @@ export default {
   margin-right: 0.5rem;
 }
 
+
 .input-group input {
   flex: 1;
   height: 32px;
@@ -691,6 +840,13 @@ export default {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 0.9rem;
+  background-color: white;
+}
+
+.input-group input:hover,
+.input-group input:focus {
+  border: 2px solid #4A9DEC;
+  box-shadow: 0px 0px 0px 7px rgb(74, 157, 236, 20%);
   background-color: white;
 }
 
@@ -737,6 +893,13 @@ export default {
 .medicamentos-search {
   position: relative;
   margin-bottom: 12px;
+}
+
+.medicamentos-search:hover,
+.medicamentos-search:focus {
+  border: 2px solid #4A9DEC;
+  box-shadow: 0px 0px 0px 7px rgb(74, 157, 236, 20%);
+  background-color: white;
 }
 
 .medicamentos-dropdown {
@@ -926,4 +1089,130 @@ export default {
     width: 100%;
   }
 }
+
+.btn-refresh {
+  background-color: #4CAF50; /* Verde vibrante */
+  color: #ffffff; /* Texto blanco */
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-top: 0.5em;
+}
+
+.btn-refresh:hover {
+  background-color: #45a049; /* Verde más oscuro */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Sombra */
+}
+
+.btn-refresh i {
+  margin-right: 5px;
+}
+
+
+
+/* Estilos del contenedor de la tabla */
+.table-container {
+  max-height: 180px; /* Altura máxima del contenedor */
+  overflow-y: auto; /* Scroll vertical solo si es necesario */
+  margin-top: 10px;
+  border: 1px solid #ddd; /* Opcional: Borde del contenedor */
+  border-radius: 5px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+/* Encabezado pegajoso */
+.ventas-table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #333; /* Color de fondo fijo para la cabecera */
+  color: #ffffff;
+  z-index: 2; /* Asegura que esté sobre el contenido */
+}
+
+/* Mejoras de tabla */
+.ventas-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ventas-table th, .ventas-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.ventas-table tr:nth-child(even) {
+  background-color: #f9f9f9; /* Color alternativo para filas */
+}
+
+.ventas-table tr:hover {
+  background-color: #d1ecf1; /* Color al hacer hover */
+}
+
+.tipo-pago-yape {
+  color: #8802b0;
+  font-weight: bold;
+}
+
+.tipo-pago-tarjeta {
+  color: #e15e00;
+  font-weight: bold;
+}
+
+.tipo-pago-efectivo {
+  color: #008a1c;
+  font-weight: bold;
+}
+
+/* No hay datos */
+.no-data {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+/* Modificar el contenedor del input DNI para usar el estilo de input-group */
+.dni-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dni-container label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.85rem;
+}
+
+/* Estilos para el grupo de búsqueda */
+.search-group {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+/* Modificar los estilos del input */
+.search-input {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  height: 32px;
+  transition: all 0.2s ease-in-out;
+}
+
+.search-input:hover,
+.search-input:focus {
+  border: 2px solid #4A9DEC !important;
+  box-shadow: 0px 0px 0px 7px rgb(74, 157, 236, 20%) !important;
+  background-color: white !important;
+  outline: none;
+}
+
 </style>

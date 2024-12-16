@@ -1,0 +1,108 @@
+DROP VIEW IF EXISTS vw_detalle_ventas_diarias;
+DROP PROCEDURE IF EXISTS sp_obtener_ventas_vendedor;
+
+CREATE VIEW vw_detalle_ventas_diarias AS
+SELECT 
+    v.Nombre AS Vendedor,
+    c.DNI AS DNI_Cliente,
+    CONCAT(c.Nombre, ' ', c.Apellido_Pat) AS Cliente,
+    s.Fecha_Venta,
+    s.Tipo_de_Pago,
+    GROUP_CONCAT(
+        CONCAT(m.Nombre, ' (', ds.Cantidad, ')')
+        SEPARATOR ', '
+    ) AS Detalle_Productos,
+    s.Monto_Total,
+    s.ID AS Numero_Venta
+FROM 
+    Salida s
+    INNER JOIN Vendedor v ON s.Vendedor_ID = v.ID
+    INNER JOIN Cliente c ON s.Cliente_ID = c.ID
+    INNER JOIN Detalle_Salida ds ON s.ID = ds.Salida_ID
+    INNER JOIN Medicamento m ON ds.Medicamento_ID = m.ID
+GROUP BY 
+    s.ID, v.Nombre, c.DNI, c.Nombre, c.Apellido_Pat,
+    s.Fecha_Venta, s.Tipo_de_Pago, s.Monto_Total;
+
+DELIMITER //
+
+CREATE PROCEDURE sp_obtener_ventas_vendedor(
+    IN p_vendedor_id INT,
+    IN p_fecha DATE
+)
+BEGIN
+    SELECT 
+        v.Nombre AS Vendedor,
+        c.DNI AS DNI_Cliente,
+        CONCAT(c.Nombre, ' ', c.Apellido_Pat) AS Cliente,
+        s.Fecha_Venta,
+        s.Tipo_de_Pago,
+        GROUP_CONCAT(
+            CONCAT(m.Nombre, ' (', ds.Cantidad, ')')
+            SEPARATOR ', '
+        ) AS Detalle_Productos,
+        s.Monto_Total,
+        s.ID AS Numero_Venta
+    FROM 
+        Salida s
+        INNER JOIN Vendedor v ON s.Vendedor_ID = v.ID
+        INNER JOIN Cliente c ON s.Cliente_ID = c.ID
+        INNER JOIN Detalle_Salida ds ON s.ID = ds.Salida_ID
+        INNER JOIN Medicamento m ON ds.Medicamento_ID = m.ID
+    WHERE 
+        v.ID = p_vendedor_id 
+        AND s.Fecha_Venta = p_fecha
+    GROUP BY 
+        s.ID, v.Nombre, c.DNI, c.Nombre, c.Apellido_Pat,
+        s.Fecha_Venta, s.Tipo_de_Pago, s.Monto_Total;
+END //
+
+DELIMITER ;
+SELECT * FROM vw_detalle_ventas_diarias;
+CALL sp_obtener_ventas_vendedor(1, '2024-12-12');
+
+
+
+-- Primero borramos si existen
+DROP VIEW IF EXISTS vw_reporte_caja;
+DROP PROCEDURE IF EXISTS sp_reporte_caja_vendedor;
+
+-- Vista general de todas las cajas
+CREATE VIEW vw_reporte_caja AS
+SELECT 
+    v.Nombre AS Vendedor,
+    c.Fecha,
+    c.Saldo_Final
+FROM 
+    Caja c
+    INNER JOIN Vendedor v ON c.Vendedor_ID = v.ID
+ORDER BY 
+    c.Fecha DESC;
+
+-- Procedimiento para buscar por vendedor y fecha específica
+DELIMITER //
+
+CREATE PROCEDURE sp_reporte_caja_vendedor(
+    IN p_vendedor_id INT,
+    IN p_fecha DATE
+)
+BEGIN
+    SELECT 
+        v.Nombre AS Vendedor,
+        c.Fecha,
+        c.Saldo_Final
+    FROM 
+        Caja c
+        INNER JOIN Vendedor v ON c.Vendedor_ID = v.ID
+    WHERE 
+        v.ID = p_vendedor_id 
+        AND c.Fecha = p_fecha;
+END //
+
+DELIMITER ;
+
+-- Ver todas las cajas
+SELECT * FROM vw_reporte_caja;
+
+-- Ver caja específica por vendedor y fecha
+CALL sp_reporte_caja_vendedor(5, '2024-12-12');

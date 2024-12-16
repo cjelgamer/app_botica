@@ -64,6 +64,7 @@ BEGIN
     VALUES ('Salida', CURDATE(), NEW.Salida_ID);
 END$$
 
+DELIMITER ;
 
 
 

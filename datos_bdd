@@ -1,3 +1,6 @@
+INSERT INTO cliente (DNI, Nombre, Apellido_Pat, Apellido_Mat) 
+VALUES (NULL, NULL, NULL, NULL);
+
 INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
 VALUES ('Amoxicilina', 'Antibiótico de amplio espectro', 15.00, 0, 'Tabletas');
 
