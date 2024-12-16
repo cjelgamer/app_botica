@@ -71,4 +71,16 @@ class MedicamentoController extends Controller
         return response()->json(['message' => 'Medicamento eliminado']);
     }
 
+
+    // Método para obtener medicamentos con bajo stock
+// Método para obtener medicamentos con bajo stock
+public function medicamentoBajo()
+{
+    // Obtén los medicamentos cuyo stock esté entre 1 y 9
+    $medicamentosBajos = Medicamento::whereBetween('Stock', [1, 9])->get();
+
+    return response()->json($medicamentosBajos);
+}
+
+
 }

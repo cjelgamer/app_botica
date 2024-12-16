@@ -4,7 +4,7 @@
             <img src="/images/logo_c.png" alt="Logo Botica" class="logo" @click="$router.push('/vendedor-dashboard')" style="cursor: pointer;">
             <nav class="dashboard-nav">
                 <button @click="$router.push({ path: '/vendedor-dashboard/medicamentos' })">Lista de Medicamentos</button>
-                <button @click="$router.push({ path: '/vendedor-dashboard/registrar-venta' })">Realizar Venta</button>
+                <button @click="$router.push({ path: '/vendedor-dashboard/registrar-venta' })"><span class="key-button">F4</span>Realizar Venta</button>
             </nav>
             <div class="user-options">
                 <i class="fas fa-user-circle user-icon" @click="$router.push({ path: '/vendedor-dashboard/perfil' })"></i>
@@ -45,6 +45,15 @@
 export default {
     name: 'VendedorDashboard',
     
+    mounted() {
+        // Agregar el evento de teclado cuando se monta el componente
+        document.addEventListener('keydown', this.handleKeyPress);
+    },
+    beforeUnmount() {
+        // Remover el evento de teclado cuando se destruye el componente
+        document.removeEventListener('keydown', this.handleKeyPress);
+    },
+    
     methods: {
         showMessage(action) {
             const messages = {
@@ -54,7 +63,17 @@ export default {
             };
             console.log(messages[action]);
             alert(messages[action]);
+        },
+
+        handleKeyPress(event) {
+    if (this.$route.path.startsWith('/vendedor-dashboard')) {
+        if (event.key === "F4") {
+            event.preventDefault();
+            this.$router.push({ path: '/vendedor-dashboard/registrar-venta' });
         }
+    }
+}
+
     }
 };
 </script>
@@ -208,5 +227,21 @@ export default {
     .faq-section {
         width: 100%;
     }
+}
+
+.key-button {
+    background: linear-gradient(-225deg, #d5dbe4, #f8f8f8); /* Gradiente similar a teclas */
+    border: 1px solid #cdcde6;
+    border-radius: 4px;
+    box-shadow: inset 0 -2px 0 0 #cdcde6, inset 0 0 1px 1px #fff,
+        0 1px 2px 1px rgba(30, 35, 90, 0.4);
+    color: #555;
+    font-size: 0.9em;
+    font-weight: bold;
+    padding: 3px 6px;
+    margin-right: 8px; /* Espacio entre la tecla y el texto */
+    text-transform: uppercase;
+    display: inline-block;
+    user-select: none; /* Evita que se seleccione */
 }
 </style>

@@ -6,21 +6,44 @@
                 <button @click="$router.push({ path: '/admin-dashboard/vendedores' })">Ver Vendedores</button>
                 <button @click="$router.push({ path: '/admin-dashboard/laboratorios' })">Ver Laboratorios</button>
                 <button @click="$router.push({ path: '/admin-dashboard/generar-reportes' })">Generar Reportes</button>
-                <button @click="showMessage('ajustarStock')">Ajustar Stock</button>
+                 <!--<button @click="showMessage('ajustarStock')">Ajustar Stock</button>-->
             </nav>
             <!--<input type="text" placeholder="Buscar..." class="search-bar" />-->
             <div class="user-options">
-                <i class="fas fa-bell notification-icon"></i> 
+                <i 
+                    class="fas fa-bell notification-icon" 
+                    @mouseenter="openDropdown" 
+                    @mouseleave="closeDropdown"
+                ></i>
+                <transition name="fade"> 
+                    <div  
+                        v-if="isDropdownOpen" 
+                        class="notification-dropdown" 
+                        @mouseenter="keepDropdownOpen"
+                        @mouseleave="closeDropdown"
+                    >
+                        <ul>
+                            <li v-for="medicamento in medicamentos" :key="medicamento.id">
+                                <span class="alert-icon">⚠️</span>
+                                <span class="medicamento-nombre">{{ medicamento.Nombre }}</span>
+                                <span class="medicamento-stock">Stock: {{ medicamento.Stock }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </transition>
                 <i class="fas fa-user-circle user-icon" @click="$router.push({ path: '/admin-dashboard/perfil' })"></i>
             </div>
         </header>
 
         <!-- Segunda cabecera para los botones adicionales -->
         <header class="sub-header">
-            <button @click="$router.push({ path: '/admin-dashboard/registrar-venta' })">Realizar Venta</button>
-            <button @click="$router.push({ path: '/admin-dashboard/registrar-compra' })">Registrar Compra</button>
+            <button @click="$router.push({ path: '/admin-dashboard/registrar-venta' })"><span class="key-button">F4</span>
+                Realizar Venta</button>
+            <button @click="$router.push({ path: '/admin-dashboard/registrar-compra' })"><span class="key-button">F5</span>
+                Registrar Compra</button>
             <!--<button @click="showMessage('listaMedicamentos')">Lista de Medicamentos</button>-->
-            <button @click="$router.push({ path: '/admin-dashboard/medicamentos' })">Lista de Medicamentos</button>
+            <button @click="$router.push({ path: '/admin-dashboard/medicamentos' })"><span class="key-button">F6</span>
+                Lista de Medicamentos</button>
         </header>
 
         <main class="dashboard-content">
@@ -108,12 +131,67 @@ export default {
 
     data() {
         return {
+            isDropdownOpen: false,
             modalOpen: false,  // Estado para controlar la visibilidad del modal
-            medicamento: null, // Aquí puedes almacenar el medicamento que se está publicando
+            medicamento: null,
+            medicamentos: []         // Aquí puedes almacenar el medicamento que se está publicando
         };
     },
+
+    mounted() {
+        // Agregar el evento de teclado cuando se monta el componente
+        document.addEventListener('keydown', this.handleKeyPress);
+    },
+    beforeUnmount() {
+        // Remover el evento de teclado cuando se destruye el componente
+        document.removeEventListener('keydown', this.handleKeyPress);
+    },
+
     methods: {
     // Método para abrir el modal
+
+
+    handleKeyPress(event) {
+    // Verifica si estamos en la ruta del admin-dashboard
+    if (this.$route.path.startsWith('/admin-dashboard')) {
+        if (event.key === "F4") {
+            event.preventDefault();
+            event.stopPropagation();
+            this.$router.push({ path: '/admin-dashboard/registrar-venta' });
+        } else if (event.key === "F5") {
+            event.preventDefault();
+            event.stopPropagation();
+            this.$router.push({ path: '/admin-dashboard/registrar-compra' });
+        } else if (event.key === "F6") {
+            event.preventDefault();
+            event.stopPropagation();
+            this.$router.push({ path: '/admin-dashboard/medicamentos' });
+        }
+    }
+},
+
+
+    openDropdown() {
+            this.isDropdownOpen = true;
+            this.fetchMedicamentosBajo();
+        },
+        closeDropdown() {
+            this.isDropdownOpen = false;
+        },
+        keepDropdownOpen() {
+            // Mantiene abierto el desplegable si el cursor está dentro del menú
+            this.isDropdownOpen = true;
+        },
+        fetchMedicamentosBajo() {
+            axios.get('/medicamentos/bajo')
+                .then(response => {
+                    this.medicamentos = response.data;
+                })
+                .catch(error => {
+                    console.error("Error al obtener medicamentos bajos:", error);
+                });
+        },
+
     openModal(action) {
         if (action === 'publicarMedicamento') {
             this.modalOpen = true;  // Abrir el modal cuando se haga clic en 'Publicar Medicamento'
@@ -417,4 +495,117 @@ export default {
         width: 100%;
     }
 }
+.notification-dropdown {
+    position: absolute;
+    top: 10px; /* Lo bajamos un poco */
+    right: 90px; /* Lo movemos más a la izquierda */
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 250px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    padding: 5px 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Agregamos un pequeño triángulo apuntando al ícono */
+.notification-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: 20px; /* Ajusta para que quede centrado con el ícono */
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid #ddd; /* Triángulo borde */
+    z-index: 1001;
+}
+
+.notification-dropdown::after {
+    content: '';
+    position: absolute;
+    top: -9px;
+    right: 21px; /* Ajusta para que quede centrado con el ícono */
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 9px solid white; /* Triángulo fondo */
+    z-index: 1002;
+}
+
+
+.notification-dropdown ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.notification-dropdown li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px; /* Más pequeño */
+    color: #333;
+    transition: background-color 0.3s;
+}
+
+.notification-dropdown li:hover {
+    background-color: #ffe6e6; /* Fondo rojo claro en hover */
+}
+
+.notification-dropdown li:last-child {
+    border-bottom: none;
+}
+
+.alert-icon {
+    color: #e74c3c; /* Rojo de alerta */
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.medicamento-nombre {
+    flex: 1;
+    font-weight: bold;
+    color: #e74c3c; /* Texto rojo de alerta */
+}
+
+.medicamento-stock {
+    color: #555;
+    font-size: 12px;
+}
+
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.3s;
+}
+.fade-enter, .fade-leave-to {
+    opacity: 0;
+}
+
+
+
+.key-button {
+    background: linear-gradient(-225deg, #d5dbe4, #f8f8f8); /* Gradiente similar a teclas */
+    border: 1px solid #cdcde6;
+    border-radius: 4px;
+    box-shadow: inset 0 -2px 0 0 #cdcde6, inset 0 0 1px 1px #fff,
+        0 1px 2px 1px rgba(30, 35, 90, 0.4);
+    color: #555;
+    font-size: 0.9em;
+    font-weight: bold;
+    padding: 3px 6px;
+    margin-right: 8px; /* Espacio entre la tecla y el texto */
+    text-transform: uppercase;
+    display: inline-block;
+    user-select: none; /* Evita que se seleccione */
+}
+
+
+
 </style>

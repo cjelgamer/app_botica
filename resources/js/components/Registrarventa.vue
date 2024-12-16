@@ -2,9 +2,8 @@
   <div class="form-container">
     <!-- Header con título y saldo -->
     <div class="header-section">
-      <h2>Realizar Venta</h2>
       <div class="saldo-display">
-        <span class="saldo-label">Dinero en Caja:</span>
+        <span class="saldo-label">Dinero en Caja Hoy:</span>
         <span class="saldo-monto">S/. {{ saldoCaja.toFixed(2) }}</span>
       </div>
     </div>
@@ -93,6 +92,7 @@
               <i class="fas fa-search"></i> Buscar
             </button>
             <button @click="usarClienteGeneral" class="btn-general">
+              <span class="key-button">F2</span>
               <i class="fas fa-users"></i> Cliente General
             </button>
           </div>
@@ -284,12 +284,14 @@ export default {
   },
 
   mounted() {
+    document.addEventListener('keydown', this.handleKeyPress);
     this.obtenerSaldoCaja();
     this.cargarVentas();
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
   },
 
   beforeDestroy() {
+    document.removeEventListener('keydown', this.handleKeyPress);
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
   },
 
@@ -306,6 +308,13 @@ export default {
         alert('Error al cargar el historial de ventas')
       }
     },
+
+    handleKeyPress(event) {
+    if (event.key === "F2") {
+      event.preventDefault(); // Evitar la acción predeterminada del navegador
+      this.usarClienteGeneral(); // Llama al método para usar el cliente general
+    }
+  },
 
     toggleDetalles(ventaId) {
       this.detallesAbiertos = this.detallesAbiertos === ventaId ? null : ventaId
@@ -1115,7 +1124,7 @@ export default {
 
 /* Estilos del contenedor de la tabla */
 .table-container {
-  max-height: 180px; /* Altura máxima del contenedor */
+  max-height: 120px; /* Altura máxima del contenedor */
   overflow-y: auto; /* Scroll vertical solo si es necesario */
   margin-top: 10px;
   border: 1px solid #ddd; /* Opcional: Borde del contenedor */
@@ -1125,12 +1134,12 @@ export default {
 
 /* Encabezado pegajoso */
 .ventas-table thead th {
-  position: sticky;
-  top: 0;
-  background-color: #333; /* Color de fondo fijo para la cabecera */
+  background-color: #333;
   color: #ffffff;
-  z-index: 2; /* Asegura que esté sobre el contenido */
+  font-size: 0.85rem; /* Reducimos el tamaño del texto */
+  padding: 5px 6px;
 }
+
 
 /* Mejoras de tabla */
 .ventas-table {
@@ -1139,10 +1148,12 @@ export default {
 }
 
 .ventas-table th, .ventas-table td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
+  padding: 6px 8px; /* Ajustamos el espacio interno */
+  font-size: 0.85rem; /* Reducimos ligeramente el tamaño del texto */
+  line-height: 1.2; /* Compactamos el texto verticalmente */
+  height: auto; /* Permitimos que se ajuste al contenido */
 }
+
 
 .ventas-table tr:nth-child(even) {
   background-color: #f9f9f9; /* Color alternativo para filas */
@@ -1213,6 +1224,21 @@ export default {
   box-shadow: 0px 0px 0px 7px rgb(74, 157, 236, 20%) !important;
   background-color: white !important;
   outline: none;
+}
+.key-button {
+    background: linear-gradient(-225deg, #d5dbe4, #f8f8f8); /* Gradiente de tecla */
+    border: 1px solid #cdcde6;
+    border-radius: 4px;
+    box-shadow: inset 0 -2px 0 0 #cdcde6, inset 0 0 1px 1px #fff,
+        0 1px 2px 1px rgba(30, 35, 90, 0.4);
+    color: #555;
+    font-size: 0.9em;
+    font-weight: bold;
+    padding: 3px 6px;
+    margin-right: 8px; /* Espacio entre la tecla y el texto */
+    text-transform: uppercase;
+    display: inline-block;
+    user-select: none; /* Evita la selección del texto */
 }
 
 </style>

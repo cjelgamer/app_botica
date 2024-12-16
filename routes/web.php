@@ -63,11 +63,16 @@ Route::group(['middleware' => ['web']], function () {
     Route::delete('/laboratorios/{id}', [LaboratorioController::class, 'destroy'])->name('laboratorios.destroy');
 
     // Rutas para medicamentos
+
+    Route::get('/medicamentos/bajo', [MedicamentoController::class, 'medicamentoBajo'])->name('medicamentos.bajo');
+
     Route::get('/medicamentos', [MedicamentoController::class, 'index']);
     Route::get('/medicamentos/{id}', [MedicamentoController::class, 'show']);
     Route::post('/medicamentos', [MedicamentoController::class, 'store']);
     Route::put('/medicamentos/{id}', [MedicamentoController::class, 'update']);
     Route::delete('/medicamentos/{id}', [MedicamentoController::class, 'destroy']);
+    
+
 
     // Rutas para entradas y detalles
     Route::post('/entrada', [EntradaController::class, 'guardarEntrada']);
@@ -82,6 +87,8 @@ Route::group(['middleware' => ['web']], function () {
         $medicamentos = Medicamento::where('nombre', 'like', '%' . $searchQuery . '%')->get();
         return response()->json($medicamentos);
     });
+
+ 
 
 
     Route::post('/clientes', [ClienteController::class, 'store']);
