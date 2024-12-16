@@ -3,8 +3,12 @@
     <!-- Header con título y saldo -->
     <div class="header-section">
       <div class="saldo-display">
-        <span class="saldo-label">Dinero en Caja Hoy:</span>
-        <span class="saldo-monto">S/. {{ saldoCaja.toFixed(2) }}</span>
+        <i class="fas fa-cash-register saldo-icon"></i>
+        <span class="saldo-label">Caja Hoy:</span>
+        <div class="saldo-monto">
+          <i class="fas fa-money-bill-wave saldo-icon"></i> <!-- Icono de billete -->
+          S/. {{ saldoCaja.toFixed(2) }}
+        </div>
       </div>
     </div>
 
