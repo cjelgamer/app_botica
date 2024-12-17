@@ -275,8 +275,8 @@ export default {
       // Nuevas propiedades para el historial
       ventas: [],
       detallesAbiertos: null,
-      filtroFecha: new Date().toISOString().split('T')[0],
-      fechaActual: new Date().toISOString().split('T')[0]
+      filtroFecha: this.getFechaActual(),
+      fechaActual: this.getFechaActual()
     }
   },
 
@@ -326,19 +326,29 @@ export default {
       this.detallesAbiertos = this.detallesAbiertos === ventaId ? null : ventaId
     },
 
-    formatearFecha(fecha) {
-  // Asegurarse de que la fecha se interprete en la zona horaria local
-  const [year, month, day] = fecha.split('-');
-  const date = new Date(year, month - 1, day);
-  
-  // Usar el formato específico para Perú
-  return date.toLocaleDateString('es-PE', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    timeZone: 'America/Lima' // Especificar la zona horaria de Perú
-  });
+    // Método para obtener la fecha actual en la zona horaria de Lima
+    getFechaActual() {
+    const fecha = new Date();
+    fecha.setHours(fecha.getHours() - 5); // Ajuste manual para UTC-5 (Lima)
+    return fecha.toISOString().split('T')[0];
 },
+
+    // Actualizamos el método formatearFecha para que use la zona horaria de Lima
+    formatearFecha(fecha) {
+      const fechaObj = new Date(fecha + 'T00:00:00');
+      return fechaObj.toLocaleDateString('es-PE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: 'America/Lima'
+      });
+    },
+
+    // Si hay algún método que actualice las fechas, también debería usar getFechaActual
+    actualizarFechas() {
+      this.filtroFecha = this.getFechaActual();
+      this.fechaActual = this.getFechaActual();
+    },
 
 
     async reimprimirTicket(ventaId) {

@@ -105,4 +105,34 @@ DELIMITER ;
 SELECT * FROM vw_reporte_caja;
 
 -- Ver caja específica por vendedor y fecha
-CALL sp_reporte_caja_vendedor(5, '2024-12-12');
+CALL sp_reporte_caja_vendedor(2, '2024-12-16');
+CALL sp_reporte_caja_vendedor(1, '2024-12-16');
+
+
+
+
+DROP PROCEDURE IF EXISTS sp_reporte_cajas_fecha;
+
+DELIMITER //
+
+CREATE PROCEDURE sp_reporte_cajas_fecha(
+    IN p_fecha DATE
+)
+BEGIN
+    SELECT 
+        v.ID AS Vendedor_ID,
+        v.Nombre AS Vendedor,
+        c.Fecha,
+        c.Saldo_Final
+    FROM 
+        Caja c
+        INNER JOIN Vendedor v ON c.Vendedor_ID = v.ID
+    WHERE 
+        c.Fecha = p_fecha
+    ORDER BY 
+        v.Nombre ASC;
+END //
+
+DELIMITER ;
+
+CALL sp_reporte_cajas_fecha('2024-12-16');

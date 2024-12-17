@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Reporte de Compras - Botica "Mi Salud"</title>
+    <title>Reporte de Compras - Botica "SISFARMA"</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -88,7 +88,7 @@
                     Reporte de Compras Completo
             @endswitch
         </h1>
-        <p>Botica "Mi Salud"</p>
+        <p>Botica "SISFARMA"</p>
     </div>
 
     <div class="fecha">
@@ -151,7 +151,7 @@
     </div>
 
     <div style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #2e2e2e;">
-        © {{ date('Y') }} Botica "Mi Salud" - Todos los derechos reservados
+        © {{ date('Y') }} Botica "SISFARMA" - Todos los derechos reservados
     </div>
 </body>
 </html>

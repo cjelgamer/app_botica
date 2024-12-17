@@ -47,4 +47,47 @@ class ReporteController extends Controller
             ], 500);
         }
     }
+
+
+
+    public function generarReporteCajas(Request $request, $fecha = null)
+    {
+        try {
+            $fechaReporte = $fecha ?? now()->format('Y-m-d');
+            
+            $cajas = DB::select('CALL sp_reporte_cajas_fecha(?)', [$fechaReporte]);
+            
+            if (empty($cajas)) {
+                return response()->json([
+                    'message' => 'No hay datos de cajas disponibles para la fecha seleccionada'
+                ], 404);
+            }
+    
+            $pdf = PDF::loadView('reporte_cajas', [
+                'cajas' => $cajas,
+                'fecha' => date('d/m/Y', strtotime($fechaReporte))
+            ]);
+            
+            return $pdf->download('reporte_cajas_' . $fechaReporte . '.pdf');
+    
+        } catch (Exception $e) {
+            \Log::error('Error generando reporte de cajas: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error al generar el reporte: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function getDatosCaja($fecha)
+{
+    try {
+        $cajas = DB::select('CALL sp_reporte_cajas_fecha(?)', [$fecha]);
+        return response()->json($cajas);
+    } catch (Exception $e) {
+        return response()->json([
+            'message' => 'Error al obtener datos de caja: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }

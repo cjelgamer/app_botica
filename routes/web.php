@@ -81,6 +81,12 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/generar-reporte-compras/{tipo}', [ReporteController::class, 'generarReporteCompras'])
         ->name('reporte.compras.generar');
 
+
+        Route::get('/datos-caja/{fecha}', [ReporteController::class, 'getDatosCaja']);
+
+        Route::get('/generar-reporte-cajas/{fecha}', [ReporteController::class, 'generarReporteCajas'])
+        ->name('reporte.cajas.generar');
+
     // Ruta para obtener los medicamentos (para búsqueda)
     Route::get('/medicamentos', function (Request $request) {
         $searchQuery = $request->input('search');

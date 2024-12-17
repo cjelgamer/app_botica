@@ -53,3 +53,33 @@ SELECT * FROM vista_reporte_compras_semana;
 
 -- Ver reporte del último mes
 SELECT * FROM vista_reporte_compras_mes;
+
+
+
+
+
+DROP PROCEDURE IF EXISTS sp_reporte_cajas_fecha;
+
+DELIMITER //
+
+CREATE PROCEDURE sp_reporte_cajas_fecha(
+    IN p_fecha DATE
+)
+BEGIN
+    SELECT 
+        v.ID AS Vendedor_ID,
+        v.Nombre AS Vendedor,
+        c.Fecha,
+        c.Saldo_Final
+    FROM 
+        Caja c
+        INNER JOIN Vendedor v ON c.Vendedor_ID = v.ID
+    WHERE 
+        c.Fecha = p_fecha
+    ORDER BY 
+        v.Nombre ASC;
+END //
+
+DELIMITER ;
+
+CALL sp_reporte_cajas_fecha('2024-12-16');
