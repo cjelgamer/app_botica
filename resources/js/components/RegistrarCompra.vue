@@ -3,6 +3,7 @@
     <h2 class="title">Realizar Compra</h2>
 
     <form @submit.prevent="guardarEntradaYDetalles">
+      <!-- Existing laboratory section -->
       <div class="form-group">
         <label for="laboratorio">Laboratorio:</label>
         <div class="select-container">
@@ -49,6 +50,7 @@
         </div>
       </div>
 
+      <!-- Date and Total fields -->
       <div class="form-group">
         <label for="fecha_entrega">Fecha de Entrega:</label>
         <input
@@ -75,6 +77,7 @@
         />
       </div>
 
+      <!-- Details section -->
       <div v-if="entradaGuardada">
         <h3>Agregar Detalles</h3>
 
@@ -88,6 +91,14 @@
               class="input-field"
               placeholder="Buscar medicamento..."
             />
+            <button
+              v-if="!medicamentoSeleccionado"
+              type="button"
+              class="add-button"
+              @click="openModalMedicamento"
+            >
+              <span class="add-icon">+</span> Agregar
+            </button>
           </div>
 
           <div class="medicamentos-list" v-if="!medicamentoSeleccionado && filtradosMedicamentos.length > 0">
@@ -130,6 +141,7 @@
       </div>
     </form>
 
+    <!-- Laboratory Modal -->
     <FormularioLaboratorio
       v-if="modalLaboratorioAbierto"
       :laboratorio="currentLaboratorio"
@@ -137,6 +149,14 @@
       @add-laboratorio="addLaboratorio"
       @update-laboratorio="updateLaboratorio"
       @close="closeModalLaboratorio"
+    />
+
+    <!-- Medication Modal -->
+    <FormularioMedicamento
+      v-if="modalMedicamentoAbierto"
+      :isOpen="modalMedicamentoAbierto"
+      @add-medicamento="addMedicamento"
+      @close-modal="closeModalMedicamento"
     />
   </div>
 </template>
@@ -146,10 +166,12 @@ import axios from "axios";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import FormularioLaboratorio from './FormularioLaboratorio.vue';
+import FormularioMedicamento from './FormularioMedicamento.vue';
 
 export default {
   components: {
     FormularioLaboratorio,
+    FormularioMedicamento,
   },
   data() {
     return {
@@ -164,6 +186,7 @@ export default {
       cantidad: 1,
       detalles: [],
       modalLaboratorioAbierto: false,
+      modalMedicamentoAbierto: false,
       currentLaboratorio: {},
       editingLaboratorio: false,
       searchLaboratorio: "",
@@ -183,6 +206,7 @@ export default {
     }
   },
   methods: {
+    // Existing methods remain the same
     async cargarDatos() {
       try {
         const resLaboratorios = await axios.get("/laboratorios");
@@ -195,31 +219,53 @@ export default {
       }
     },
 
+    // Add new methods for medication modal
+    openModalMedicamento() {
+      this.modalMedicamentoAbierto = true;
+    },
+
+    closeModalMedicamento() {
+      this.modalMedicamentoAbierto = false;
+    },
+
+    async addMedicamento(medicamento) {
+      try {
+        const response = await axios.post("/medicamentos", medicamento);
+        this.medicamentos.push(response.data);
+        this.closeModalMedicamento();
+        // Optionally select the newly added medication
+        this.seleccionarMedicamento(response.data);
+      } catch (error) {
+        console.error("Error al agregar medicamento:", error);
+      }
+    },
+
+    // Keep all existing methods unchanged
     async enviarEntrada() {
-      if (!this.entradaGuardada) {
+    if (!this.entradaGuardada) {
         const entrada = {
-          laboratorio_id: this.laboratorioSeleccionado.ID,
-          fecha_entrega: this.fechaEntrega,
-          total: this.total,
+            laboratorio_id: this.laboratorioSeleccionado.ID,
+            fecha_entrega: this.fechaEntrega,
+            total: this.total,
         };
 
         try {
-          const response = await axios.post("/entrada", entrada);
-          if (response.data.id) {
-            this.entradaID = response.data.id;
-            this.entradaGuardada = true;
-          }
+            const response = await axios.post("/entrada", entrada);
+            if (response.data.id) {
+                this.entradaID = response.data.id;
+                this.entradaGuardada = true;
+                //alert('Entrada guardada. Por favor, agregue los detalles antes de salir.');
+            }
         } catch (error) {
-          console.error("Error al registrar la entrada:", error);
+            console.error("Error al registrar la entrada:", error);
         }
-      }
-    },
+    }
+},
 
     async manejarCompra() {
       if (this.detalles.length === 0) {
         await this.agregarDetalle();
       }
-
       await this.finalizarCompra();
     },
 
@@ -319,10 +365,38 @@ export default {
       }
     },
   },
+
+
+  // Añade esto en el component junto con los otros lifecycle hooks
+  beforeRouteLeave(to, from, next) {
+  if (this.entradaGuardada && this.detalles.length === 0) {
+    // Forzar al usuario a quedarse en la página
+    alert('Debe agregar los detalles antes de salir.');
+    next(false); // Bloquea la navegación
+  } else {
+    next(); // Permitir navegación si no hay entradas pendientes
+  }
+},
+
+
+
   mounted() {
-    this.cargarDatos();
-    flatpickr("#datepicker", { dateFormat: "Y-m-d" });
-  },
+  this.cargarDatos();
+  flatpickr("#datepicker", { dateFormat: "Y-m-d" });
+  window.addEventListener('beforeunload', this.prevenirSalida);
+},
+
+beforeDestroy() {
+  window.removeEventListener('beforeunload', this.prevenirSalida);
+},
+
+prevenirSalida(event) {
+  if (this.entradaGuardada && this.detalles.length === 0) {
+    event.preventDefault();
+    event.returnValue = ''; // Mensaje requerido por navegadores
+    return event.returnValue;
+  }
+}
 };
 </script>
 
