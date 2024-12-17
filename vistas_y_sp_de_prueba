@@ -59,7 +59,7 @@ END //
 
 DELIMITER ;
 SELECT * FROM vw_detalle_ventas_diarias;
-CALL sp_obtener_ventas_vendedor(1, '2024-12-12');
+CALL sp_obtener_ventas_vendedor(1, '2024-12-16');
 
 
 

@@ -83,3 +83,42 @@ END //
 DELIMITER ;
 
 CALL sp_reporte_cajas_fecha('2024-12-16');
+
+
+
+DELIMITER //
+
+CREATE PROCEDURE sp_obtener_ventas_vendedor(
+    IN p_vendedor_id INT,
+    IN p_fecha DATE
+)
+BEGIN
+    SELECT 
+        v.Nombre AS Vendedor,
+        c.DNI AS DNI_Cliente,
+        CONCAT(c.Nombre, ' ', c.Apellido_Pat) AS Cliente,
+        s.Fecha_Venta,
+        s.Tipo_de_Pago,
+        GROUP_CONCAT(
+            CONCAT(m.Nombre, ' (', ds.Cantidad, ')')
+            SEPARATOR ', '
+        ) AS Detalle_Productos,
+        s.Monto_Total,
+        s.ID AS Numero_Venta
+    FROM 
+        Salida s
+        INNER JOIN Vendedor v ON s.Vendedor_ID = v.ID
+        INNER JOIN Cliente c ON s.Cliente_ID = c.ID
+        INNER JOIN Detalle_Salida ds ON s.ID = ds.Salida_ID
+        INNER JOIN Medicamento m ON ds.Medicamento_ID = m.ID
+    WHERE 
+        v.ID = p_vendedor_id 
+        AND s.Fecha_Venta = p_fecha
+    GROUP BY 
+        s.ID, v.Nombre, c.DNI, c.Nombre, c.Apellido_Pat,
+        s.Fecha_Venta, s.Tipo_de_Pago, s.Monto_Total;
+END //
+
+DELIMITER ;
+SELECT * FROM vw_detalle_ventas_diarias;
+CALL sp_obtener_ventas_vendedor(1, '2024-12-16');

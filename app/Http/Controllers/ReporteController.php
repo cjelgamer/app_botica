@@ -90,4 +90,34 @@ class ReporteController extends Controller
         ], 500);
     }
 }
+
+public function getVentasVendedor(Request $request, $vendedorId, $fecha)
+{
+    try {
+        $ventas = DB::select('CALL sp_obtener_ventas_vendedor(?, ?)', [
+            $vendedorId,
+            $fecha
+        ]);
+
+        if (empty($ventas)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay ventas registradas para esta fecha',
+                'ventas' => []
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'ventas' => $ventas
+        ]);
+
+    } catch (Exception $e) {
+        \Log::error('Error obteniendo ventas del vendedor: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener las ventas: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }
