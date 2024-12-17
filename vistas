@@ -1,59 +1,66 @@
 
-CREATE VIEW vista_reporte_compras AS
+DROP VIEW IF EXISTS vista_reporte_compras;
+DROP VIEW IF EXISTS vista_reporte_compras_semana;
+DROP VIEW IF EXISTS vista_reporte_compras_mes;
+
+
+-- Vista general de compras con medicamentos agrupados
+CREATE OR REPLACE VIEW vista_reporte_compras AS
 SELECT 
-    m.Nombre as Medicamento,
+    GROUP_CONCAT(m.Nombre SEPARATOR ', ') as Medicamentos,
     l.Nombre as Laboratorio,
     e.Fecha_Entrega,
-    de.Cantidad,
-    m.Precio,
-    e.Total
+    SUM(de.Cantidad) as Cantidad_Total,
+    GROUP_CONCAT(CONCAT(m.Nombre, ': ', de.Cantidad) SEPARATOR ', ') as Detalle_Cantidades,
+    e.Total,
+    e.ID as Entrada_ID
 FROM Medicamento as m
 JOIN Detalle_Entrada as de ON m.ID = de.Medicamento_ID
 JOIN Entrada as e ON de.Entrada_ID = e.ID
 JOIN Laboratorio as l ON e.Laboratorio_ID = l.ID
+GROUP BY e.ID, l.Nombre, e.Fecha_Entrega, e.Total
 ORDER BY e.Fecha_Entrega DESC;
 
-SELECT * from vista_reporte_compras;
-
-
 -- Vista para los últimos 7 días
-CREATE VIEW vista_reporte_compras_semana AS
+CREATE OR REPLACE VIEW vista_reporte_compras_semana AS
 SELECT 
-    m.Nombre as Medicamento,
+    GROUP_CONCAT(m.Nombre SEPARATOR ', ') as Medicamentos,
     l.Nombre as Laboratorio,
     e.Fecha_Entrega,
-    de.Cantidad,
-    m.Precio,
-    e.Total
+    SUM(de.Cantidad) as Cantidad_Total,
+    GROUP_CONCAT(CONCAT(m.Nombre, ': ', de.Cantidad) SEPARATOR ', ') as Detalle_Cantidades,
+    e.Total,
+    e.ID as Entrada_ID
 FROM Medicamento as m
 JOIN Detalle_Entrada as de ON m.ID = de.Medicamento_ID
 JOIN Entrada as e ON de.Entrada_ID = e.ID
 JOIN Laboratorio as l ON e.Laboratorio_ID = l.ID
 WHERE e.Fecha_Entrega >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+GROUP BY e.ID, l.Nombre, e.Fecha_Entrega, e.Total
 ORDER BY e.Fecha_Entrega DESC;
 
 -- Vista para el último mes
-CREATE VIEW vista_reporte_compras_mes AS
+CREATE OR REPLACE VIEW vista_reporte_compras_mes AS
 SELECT 
-    m.Nombre as Medicamento,
+    GROUP_CONCAT(m.Nombre SEPARATOR ', ') as Medicamentos,
     l.Nombre as Laboratorio,
     e.Fecha_Entrega,
-    de.Cantidad,
-    m.Precio,
-    e.Total
+    SUM(de.Cantidad) as Cantidad_Total,
+    GROUP_CONCAT(CONCAT(m.Nombre, ': ', de.Cantidad) SEPARATOR ', ') as Detalle_Cantidades,
+    e.Total,
+    e.ID as Entrada_ID
 FROM Medicamento as m
 JOIN Detalle_Entrada as de ON m.ID = de.Medicamento_ID
 JOIN Entrada as e ON de.Entrada_ID = e.ID
 JOIN Laboratorio as l ON e.Laboratorio_ID = l.ID
 WHERE e.Fecha_Entrega >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+GROUP BY e.ID, l.Nombre, e.Fecha_Entrega, e.Total
 ORDER BY e.Fecha_Entrega DESC;
 
--- Ver reporte de la última semana
+
+SELECT * FROM vista_reporte_compras;
 SELECT * FROM vista_reporte_compras_semana;
-
--- Ver reporte del último mes
 SELECT * FROM vista_reporte_compras_mes;
-
 
 
 

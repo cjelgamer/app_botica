@@ -147,13 +147,20 @@
     <div v-if="mostrarVenta" class="venta-section">
       <!-- Solo mostrar búsqueda si la venta no está completada -->
       <div v-if="!ventaCompletada" class="medicamentos-search">
+        <div class="search-header">
+          <span class="key-button">Tab</span>
+          <span>Buscar medicamento</span>
+        </div>
         <input 
-          v-model="busquedaMedicamento" 
+          ref="medicamentoSearch"
+          v-if="!medicamentoSeleccionado"
+          v-model="busquedaMedicamento"
           type="text" 
           class="input-field"
           placeholder="Buscar medicamento..." 
           @input="filtrarMedicamentos"
           @keyup.enter="seleccionarPrimerMedicamento"
+          @focus="filtrarMedicamentos"
         />
         <div v-if="medicamentosFiltrados.length && busquedaMedicamento" class="medicamentos-dropdown">
           <div 
@@ -237,6 +244,7 @@
             <i class="fas fa-plus"></i> Nueva Venta
           </button>
           <button v-if="!ventaCompletada" @click="finalizarVenta" class="btn-success">
+            <span class="key-button">Ctrl</span>
             Finalizar Venta
           </button>
         </div>
@@ -262,6 +270,7 @@ export default {
       clienteEncontrado: false,
       mostrarFormCliente: false,
       mostrarVenta: false,
+      medicamentoSeleccionado: null,
       busquedaMedicamento: '',
       medicamentosFiltrados: [],
       medicamentosSeleccionados: [],
@@ -316,11 +325,27 @@ export default {
     },
 
     handleKeyPress(event) {
-    if (event.key === "F2") {
-      event.preventDefault(); // Evitar la acción predeterminada del navegador
-      this.usarClienteGeneral(); // Llama al método para usar el cliente general
+  if (event.key === "F2") {
+    event.preventDefault();
+    this.usarClienteGeneral();
+  } else if (event.key === "Tab") {
+    event.preventDefault();
+    if (this.mostrarVenta) {
+      const searchInput = this.$refs.medicamentoSearch;
+      if (searchInput) {
+        searchInput.focus();
+        this.filtrarMedicamentos(); // Llamar explícitamente
+      }
     }
-  },
+  }
+  else if (event.key === "Control") {  // Agregar manejo de Ctrl
+    event.preventDefault();
+    if (this.mostrarVenta && !this.ventaCompletada && this.medicamentosSeleccionados.length > 0) {
+      this.finalizarVenta();
+    }
+  }
+
+},
 
     toggleDetalles(ventaId) {
       this.detallesAbiertos = this.detallesAbiertos === ventaId ? null : ventaId
@@ -410,7 +435,7 @@ export default {
             this.ventaCompletada = true
             this.medicamentosSeleccionados = []
             this.totalVenta = 0
-            alert('Venta realizada con éxito')
+            //alert('Venta realizada con éxito')
           }
         } else {
           throw new Error('Error al crear la venta')
@@ -587,20 +612,27 @@ export default {
     },
 
     async filtrarMedicamentos() {
-      if (this.busquedaMedicamento.length < 2) {
-        this.medicamentosFiltrados = []
-        return
-      }
+  if (!this.busquedaMedicamento || this.busquedaMedicamento.length < 2) {
+    this.medicamentosFiltrados = []
+    return
+  }
 
-      try {
-        const response = await axios.get('/medicamentos', {
-          params: { search: this.busquedaMedicamento }
-        })
-        this.medicamentosFiltrados = response.data
-      } catch (error) {
-        console.error('Error al buscar medicamentos:', error)
+  try {
+    const response = await axios.get('/medicamentos', {
+      params: { 
+        search: this.busquedaMedicamento,
+        limit: 10 // Opcional: limitar resultados
       }
-    },
+    })
+    
+    if (response.data) {
+      this.medicamentosFiltrados = response.data.filter(med => med.Stock > 0)
+    }
+  } catch (error) {
+    console.error('Error al buscar medicamentos:', error)
+    this.medicamentosFiltrados = []
+  }
+},
 
     seleccionarPrimerMedicamento() {
       if (this.medicamentosFiltrados.length > 0) {
@@ -609,17 +641,24 @@ export default {
     },
 
     seleccionarMedicamento(medicamento) {
-      const existe = this.medicamentosSeleccionados.find(m => m.ID === medicamento.ID)
-      if (!existe && medicamento.Stock > 0) {
-        this.medicamentosSeleccionados.push({
-          ...medicamento,
-          cantidad: 1
-        })
-        this.calcularTotal()
-      }
-      this.busquedaMedicamento = ''
-      this.medicamentosFiltrados = []
-    },
+  const existe = this.medicamentosSeleccionados.find(m => m.ID === medicamento.ID)
+  if (!existe && medicamento.Stock > 0) {
+    this.medicamentosSeleccionados.push({
+      ...medicamento,
+      cantidad: 1
+    })
+    this.calcularTotal()
+  }
+  this.busquedaMedicamento = ''
+  this.medicamentosFiltrados = []
+  
+  // Mantener el foco en el input
+  this.$nextTick(() => {
+    if (this.$refs.medicamentoSearch) {
+      this.$refs.medicamentoSearch.focus()
+    }
+  })
+},
 
     ajustarCantidad(index, delta) {
       const med = this.medicamentosSeleccionados[index]

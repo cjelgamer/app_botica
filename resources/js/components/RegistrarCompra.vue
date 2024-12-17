@@ -128,11 +128,13 @@
               :max="medicamentoSeleccionado.Stock"
               placeholder="Cantidad"
               required
+              @keydown.enter.prevent="agregarALista"
             />
             <button 
               type="button" 
               class="add-to-list-button"
-              @click="agregarALista"
+              @click.prevent="agregarALista"
+              @keydown.enter.prevent
             >
               Agregar a lista
             </button>
@@ -258,34 +260,36 @@ export default {
     },
 
     // Nuevos métodos para manejar la lista temporal
-    agregarALista() {
-      if (!this.medicamentoSeleccionado || !this.cantidad) {
-        alert('Por favor seleccione un medicamento y especifique la cantidad');
-        return;
-      }
+    agregarALista(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation(); // Detener la propagación del evento
+  }
+  
+  if (!this.medicamentoSeleccionado || !this.cantidad) {
+    alert('Por favor seleccione un medicamento y especifique la cantidad');
+    return;
+  }
 
-      const medExistente = this.medicamentosTemporal.find(
-        m => m.id === this.medicamentoSeleccionado.ID
-      );
+  const medExistente = this.medicamentosTemporal.find(
+    m => m.id === this.medicamentoSeleccionado.ID
+  );
 
-      if (medExistente) {
-        // Si ya existe, actualizamos la cantidad
-        medExistente.cantidad += parseInt(this.cantidad);
-      } else {
-        // Si no existe, lo agregamos a la lista
-        this.medicamentosTemporal.push({
-          id: this.medicamentoSeleccionado.ID,
-          nombre: this.medicamentoSeleccionado.Nombre,
-          cantidad: parseInt(this.cantidad)
-        });
-      }
+  if (medExistente) {
+    medExistente.cantidad += parseInt(this.cantidad);
+  } else {
+    this.medicamentosTemporal.push({
+      id: this.medicamentoSeleccionado.ID,
+      nombre: this.medicamentoSeleccionado.Nombre,
+      cantidad: parseInt(this.cantidad)
+    });
+  }
 
-      // Limpiar la selección
-      this.medicamentoSeleccionado = null;
-      this.cantidad = 1;
-      this.searchMedicamento = '';
-    },
-
+  // Limpiar la selección
+  this.medicamentoSeleccionado = null;
+  this.cantidad = 1;
+  this.searchMedicamento = '';
+},
     eliminarDeLista(index) {
       this.medicamentosTemporal.splice(index, 1);
     },
