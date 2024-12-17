@@ -143,6 +143,17 @@
       </div>
     </div>
 
+    <div v-if="loading" class="loader-overlay">
+        <div class="loader">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+
     <!-- Sección Venta -->
     <div v-if="mostrarVenta" class="venta-section">
       <!-- Solo mostrar búsqueda si la venta no está completada -->
@@ -285,7 +296,8 @@ export default {
       ventas: [],
       detallesAbiertos: null,
       filtroFecha: this.getFechaActual(),
-      fechaActual: this.getFechaActual()
+      fechaActual: this.getFechaActual(),
+      loading: false
     }
   },
 
@@ -325,27 +337,27 @@ export default {
     },
 
     handleKeyPress(event) {
-  if (event.key === "F2") {
-    event.preventDefault();
-    this.usarClienteGeneral();
-  } else if (event.key === "Tab") {
-    event.preventDefault();
-    if (this.mostrarVenta) {
-      const searchInput = this.$refs.medicamentoSearch;
-      if (searchInput) {
-        searchInput.focus();
-        this.filtrarMedicamentos(); // Llamar explícitamente
+      if (this.loading) return; // Evitar acciones mientras se carga
+      if (event.key === "F2") {
+        event.preventDefault();
+        this.usarClienteGeneral();
+      } else if (event.key === "Tab") {
+        event.preventDefault();
+        if (this.mostrarVenta) {
+          const searchInput = this.$refs.medicamentoSearch;
+          if (searchInput) {
+            searchInput.focus();
+            this.filtrarMedicamentos(); // Llamar explícitamente
+          }
+        }
       }
-    }
-  }
-  else if (event.key === "Control") {  // Agregar manejo de Ctrl
-    event.preventDefault();
-    if (this.mostrarVenta && !this.ventaCompletada && this.medicamentosSeleccionados.length > 0) {
-      this.finalizarVenta();
-    }
-  }
-
-},
+      else if (event.key === "Control") {  // Agregar manejo de Ctrl
+        event.preventDefault();
+        if (this.mostrarVenta && !this.ventaCompletada && this.medicamentosSeleccionados.length > 0) {
+          this.finalizarVenta();
+        }
+      }
+    },
 
     toggleDetalles(ventaId) {
       this.detallesAbiertos = this.detallesAbiertos === ventaId ? null : ventaId
@@ -448,29 +460,31 @@ export default {
 
     // Resto de métodos existentes sin cambios
     async usarClienteGeneral() {
+      if (this.loading) return; // Evitar múltiples llamadas simultáneas
+      this.loading = true; // Activar el loader
       try {
-        const response = await axios.get('/clientes/general')
+        const response = await axios.get('/clientes/general');
         
         if (response.data.success && response.data.cliente) {
-          const clienteData = response.data.cliente
+          const clienteData = response.data.cliente;
           this.cliente = {
             DNI: null,
             Nombre: null,
             Apellido_Pat: null,
             Apellido_Mat: null,
             ID: clienteData.ID
-          }
-          this.clienteEncontrado = true
-          this.clienteGeneral = true
-          this.mostrarFormCliente = false
-          this.mostrarVenta = true
+          };
+          this.clienteEncontrado = true;
+          this.clienteGeneral = true;
+          this.mostrarFormCliente = false;
+          this.mostrarVenta = true;
         } else {
           const createResponse = await axios.post('/clientes', {
             DNI: null,
             Nombre: null,
             Apellido_Pat: null,
             Apellido_Mat: null
-          })
+          });
 
           if (createResponse.data.success && createResponse.data.cliente) {
             this.cliente = {
@@ -479,16 +493,18 @@ export default {
               Apellido_Pat: null,
               Apellido_Mat: null,
               ID: createResponse.data.cliente.ID
-            }
-            this.clienteEncontrado = true
-            this.clienteGeneral = true
-            this.mostrarFormCliente = false
-            this.mostrarVenta = true
+            };
+            this.clienteEncontrado = true;
+            this.clienteGeneral = true;
+            this.mostrarFormCliente = false;
+            this.mostrarVenta = true;
           }
         }
       } catch (error) {
-        console.error('Error al obtener cliente general:', error)
-        alert('Error al procesar cliente general')
+        console.error('Error al obtener cliente general:', error);
+        alert('Error al procesar cliente general');
+      } finally {
+        this.loading = false; // Desactivar el loader
       }
     },
 
@@ -1309,5 +1325,79 @@ export default {
     display: inline-block;
     user-select: none; /* Evita la selección del texto */
 }
+/* Contenedor del loader dentro de su sección específica */
+.loader-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Asegura que esté centrado */
+  z-index: 1000; /* Asegura que esté por encima del formulario, pero dentro del contenedor */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none; /* Hace que no interfiera con el formulario */
+  width: 100%;
+  height: 100%;
+}
+
+/* Estilos para el loader */
+.loader {
+  --color: #a5a5b0;
+  --size: 40px; /* Tamaño reducido */
+  width: var(--size);
+  height: var(--size);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.loader span {
+  width: 100%;
+  height: 100%;
+  background-color: var(--color);
+  animation: keyframes-blink 0.6s alternate infinite linear;
+}
+
+.loader span:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.loader span:nth-child(2) {
+  animation-delay: 200ms;
+}
+
+.loader span:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+.loader span:nth-child(4) {
+  animation-delay: 400ms;
+}
+
+.loader span:nth-child(5) {
+  animation-delay: 500ms;
+}
+
+.loader span:nth-child(6) {
+  animation-delay: 600ms;
+}
+
+@keyframes keyframes-blink {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.5) rotate(5deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  100% {
+    opacity: 0.3;
+    transform: scale(0.5) rotate(-5deg);
+  }
+}
+
 
 </style>
