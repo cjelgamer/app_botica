@@ -3,7 +3,7 @@
     <h2 class="title">Realizar Compra</h2>
 
     <form @submit.prevent="guardarEntradaYDetalles">
-      <!-- Existing laboratory section -->
+      <!-- Laboratorio section -->
       <div class="form-group">
         <label for="laboratorio">Laboratorio:</label>
         <div class="select-container">
@@ -119,22 +119,60 @@
 
         <div class="form-group" v-if="medicamentoSeleccionado">
           <label for="cantidad">Cantidad:</label>
-          <input
-            type="number"
-            v-model="cantidad"
-            class="input-field"
-            min="1"
-            :max="medicamentoSeleccionado.Stock"
-            placeholder="Cantidad"
-            required
-          />
+          <div class="cantidad-container">
+            <input
+              type="number"
+              v-model="cantidad"
+              class="input-field"
+              min="1"
+              :max="medicamentoSeleccionado.Stock"
+              placeholder="Cantidad"
+              required
+            />
+            <button 
+              type="button" 
+              class="add-to-list-button"
+              @click="agregarALista"
+            >
+              Agregar a lista
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de medicamentos temporal -->
+        <div v-if="medicamentosTemporal.length > 0" class="lista-medicamentos">
+          <h4>Medicamentos a agregar:</h4>
+          <div class="medicamentos-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>N°</th>
+                  <th>Medicamento</th>
+                  <th>Cantidad</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(med, index) in medicamentosTemporal" :key="index">
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ med.nombre }}</td>
+                  <td>{{ med.cantidad }}</td>
+                  <td>
+                    <button @click="eliminarDeLista(index)" class="btn-eliminar">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <button
           type="button"
           @click="manejarCompra"
           class="submit-button"
-          :disabled="!medicamentoSeleccionado"
+          :disabled="!medicamentoSeleccionado && medicamentosTemporal.length === 0"
         >
           {{ detalles.length === 0 ? 'Agregar Detalle' : 'Finalizar Compra' }}
         </button>
@@ -191,6 +229,7 @@ export default {
       editingLaboratorio: false,
       searchLaboratorio: "",
       searchMedicamento: "",
+      medicamentosTemporal: [], // Nueva propiedad para la lista temporal
     };
   },
   computed: {
@@ -206,7 +245,6 @@ export default {
     }
   },
   methods: {
-    // Existing methods remain the same
     async cargarDatos() {
       try {
         const resLaboratorios = await axios.get("/laboratorios");
@@ -219,7 +257,71 @@ export default {
       }
     },
 
-    // Add new methods for medication modal
+    // Nuevos métodos para manejar la lista temporal
+    agregarALista() {
+      if (!this.medicamentoSeleccionado || !this.cantidad) {
+        alert('Por favor seleccione un medicamento y especifique la cantidad');
+        return;
+      }
+
+      const medExistente = this.medicamentosTemporal.find(
+        m => m.id === this.medicamentoSeleccionado.ID
+      );
+
+      if (medExistente) {
+        // Si ya existe, actualizamos la cantidad
+        medExistente.cantidad += parseInt(this.cantidad);
+      } else {
+        // Si no existe, lo agregamos a la lista
+        this.medicamentosTemporal.push({
+          id: this.medicamentoSeleccionado.ID,
+          nombre: this.medicamentoSeleccionado.Nombre,
+          cantidad: parseInt(this.cantidad)
+        });
+      }
+
+      // Limpiar la selección
+      this.medicamentoSeleccionado = null;
+      this.cantidad = 1;
+      this.searchMedicamento = '';
+    },
+
+    eliminarDeLista(index) {
+      this.medicamentosTemporal.splice(index, 1);
+    },
+
+    // Método modificado para manejar múltiples medicamentos
+    async agregarDetalle() {
+      if (this.medicamentosTemporal.length === 0) {
+        alert('Agregue al menos un medicamento a la lista');
+        return;
+      }
+
+      try {
+        // Agregar todos los medicamentos de la lista temporal
+        for (const med of this.medicamentosTemporal) {
+          const detalle = {
+            entrada_id: this.entradaID,
+            medicamento_id: med.id,
+            cantidad: med.cantidad,
+          };
+
+          await axios.post("/detalle-entrada", detalle);
+          this.detalles.push({
+            nombre: med.nombre,
+            cantidad: med.cantidad,
+          });
+        }
+
+        // Limpiar la lista temporal
+        this.medicamentosTemporal = [];
+        await this.finalizarCompra();
+      } catch (error) {
+        console.error("Error al agregar los detalles:", error);
+      }
+    },
+
+    // Métodos existentes sin cambios
     openModalMedicamento() {
       this.modalMedicamentoAbierto = true;
     },
@@ -233,69 +335,37 @@ export default {
         const response = await axios.post("/medicamentos", medicamento);
         this.medicamentos.push(response.data);
         this.closeModalMedicamento();
-        // Optionally select the newly added medication
         this.seleccionarMedicamento(response.data);
       } catch (error) {
         console.error("Error al agregar medicamento:", error);
       }
     },
 
-    // Keep all existing methods unchanged
     async enviarEntrada() {
-    if (!this.entradaGuardada) {
-        const entrada = {
-            laboratorio_id: this.laboratorioSeleccionado.ID,
-            fecha_entrega: this.fechaEntrega,
-            total: this.total,
-        };
+      if (!this.entradaGuardada) {
+          const entrada = {
+              laboratorio_id: this.laboratorioSeleccionado.ID,
+              fecha_entrega: this.fechaEntrega,
+              total: this.total,
+          };
 
-        try {
-            const response = await axios.post("/entrada", entrada);
-            if (response.data.id) {
-                this.entradaID = response.data.id;
-                this.entradaGuardada = true;
-                //alert('Entrada guardada. Por favor, agregue los detalles antes de salir.');
-            }
-        } catch (error) {
-            console.error("Error al registrar la entrada:", error);
-        }
-    }
-},
+          try {
+              const response = await axios.post("/entrada", entrada);
+              if (response.data.id) {
+                  this.entradaID = response.data.id;
+                  this.entradaGuardada = true;
+              }
+          } catch (error) {
+              console.error("Error al registrar la entrada:", error);
+          }
+      }
+    },
 
     async manejarCompra() {
       if (this.detalles.length === 0) {
         await this.agregarDetalle();
       }
       await this.finalizarCompra();
-    },
-
-    async agregarDetalle() {
-      if (this.medicamentoSeleccionado && this.cantidad && this.entradaID) {
-        const detalle = {
-          entrada_id: this.entradaID,
-          medicamento_id: this.medicamentoSeleccionado.ID,
-          cantidad: this.cantidad,
-        };
-
-        try {
-          await axios.post("/detalle-entrada", detalle);
-          
-          this.detalles.push({
-            nombre: this.medicamentoSeleccionado.Nombre,
-            cantidad: this.cantidad,
-          });
-
-          this.medicamentoSeleccionado = null;
-          this.cantidad = 1;
-          this.searchMedicamento = '';
-
-          if (this.detalles.length > 0) {
-            await this.finalizarCompra();
-          }
-        } catch (error) {
-          console.error("Error al agregar el detalle:", error);
-        }
-      }
     },
 
     async finalizarCompra() {
@@ -308,6 +378,7 @@ export default {
         this.medicamentoSeleccionado = null;
         this.cantidad = 1;
         this.detalles = [];
+        this.medicamentosTemporal = []; // Limpiar también la lista temporal
         this.searchLaboratorio = '';
         this.searchMedicamento = '';
       } catch (error) {
@@ -340,6 +411,7 @@ export default {
         const response = await axios.post("/laboratorios", laboratorio);
         this.laboratorios.push(response.data);
         this.closeModalLaboratorio();
+        this.seleccionarLaboratorio(response.data);
       } catch (error) {
         console.error("Error al agregar laboratorio:", error);
       }
@@ -363,50 +435,44 @@ export default {
         this.laboratorioSeleccionado = null;
         this.searchLaboratorio = "";
       }
-    },
+    }
   },
 
-
-  // Añade esto en el component junto con los otros lifecycle hooks
   beforeRouteLeave(to, from, next) {
-  if (this.entradaGuardada && this.detalles.length === 0) {
-    // Forzar al usuario a quedarse en la página
-    alert('Debe agregar los detalles antes de salir.');
-    next(false); // Bloquea la navegación
-  } else {
-    next(); // Permitir navegación si no hay entradas pendientes
-  }
-},
-
-
+    if (this.entradaGuardada && this.detalles.length === 0) {
+      alert('Debe agregar los detalles antes de salir.');
+      next(false);
+    } else {
+      next();
+    }
+  },
 
   mounted() {
-  this.cargarDatos();
-  flatpickr("#datepicker", { dateFormat: "Y-m-d" });
-  window.addEventListener('beforeunload', this.prevenirSalida);
-},
+    this.cargarDatos();
+    flatpickr("#datepicker", { dateFormat: "Y-m-d" });
+    window.addEventListener('beforeunload', this.prevenirSalida);
+  },
 
-beforeDestroy() {
-  window.removeEventListener('beforeunload', this.prevenirSalida);
-},
+  beforeDestroy() {
+    window.removeEventListener('beforeunload', this.prevenirSalida);
+  },
 
-prevenirSalida(event) {
-  if (this.entradaGuardada && this.detalles.length === 0) {
-    event.preventDefault();
-    event.returnValue = ''; // Mensaje requerido por navegadores
-    return event.returnValue;
+  prevenirSalida(event) {
+    if (this.entradaGuardada && this.detalles.length === 0) {
+      event.preventDefault();
+      event.returnValue = '';
+      return event.returnValue;
+    }
   }
-}
 };
 </script>
 
 <style scoped>
-/* Estilos de la interfaz */
 .container {
-  overflow-x: hidden; /* Prevenir desbordamiento horizontal */
-  max-width: 100%;/* Changed from max-width to full width */
+  overflow-x: hidden;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 10px; /* Further reduced padding */
+  padding: 10px;
   background-color: #f4f4f4;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   font-family: 'Arial', sans-serif;
@@ -415,30 +481,29 @@ prevenirSalida(event) {
 .title {
   text-align: center;
   color: #333;
-  margin-bottom: 20px; /* Reducido */
-  font-size: 20px; /* Reducido de 24px */
+  margin-bottom: 20px;
+  font-size: 20px;
   font-weight: bold;
 }
 
 .form-group {
-  margin-bottom: 15px; /* Reducido */
+  margin-bottom: 15px;
   background-color: white;
-  padding: 10px; /* Reducido de 15px */
+  padding: 10px;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-
 .input-field,
 .select-field {
   width: 100%;
-  padding: 5px; /* Reduced padding */
-  margin-top: 3px; /* Further reduced margin */
+  padding: 5px;
+  margin-top: 3px;
   border-radius: 5px;
   border: 1px solid #ddd;
   transition: border-color 0.3s ease;
-  font-size: 12px; /* Smaller font size */
-  height: 30px; /* Added fixed height to make inputs shorter */
+  font-size: 12px;
+  height: 30px;
 }
 
 .input-field:focus,
@@ -457,10 +522,6 @@ prevenirSalida(event) {
 .input-field {
   flex: 1;
 }
-
-
-
-
 
 .add-button {
   display: inline-block;
@@ -483,85 +544,132 @@ prevenirSalida(event) {
   box-shadow: inset 4px 4px 12px #ffffff, inset -4px -4px 12px #ffffff;
 }
 
-.add-button:before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%) scaleY(1) scaleX(1.25);
-  top: 100%;
-  width: 140%;
-  height: 180%;
-  background-color: rgba(0, 0, 0, 0);
-  border-radius: 50%;
-  display: block;
-  transition: all 0.5s 0.1s cubic-bezier(0.55, 0, 0.1, 1);
-  z-index: -1;
-}
-
-.add-button:after {
-  content: "";
-  position: absolute;
-  left: 55%;
-  transform: translateX(-50%) scaleY(1) scaleX(1.45);
-  top: 180%;
-  width: 160%;
-  height: 190%;
-  background-color: #45a049;
-  border-radius: 50%;
-  display: block;
-  transition: all 0.5s 0.1s cubic-bezier(0.55, 0, 0.1, 1);
-  z-index: -1;
-}
-
 .add-button:hover {
   color: #ffffff;
   border: 1px solid #45a049;
-}
-
-.add-button:hover:before {
-  top: -35%;
   background-color: #45a049;
-  transform: translateX(-50%) scaleY(1.3) scaleX(0.8);
 }
-
-.add-button:hover:after {
-  top: -45%;
-  background-color: #45a049;
-  transform: translateX(-50%) scaleY(1.3) scaleX(0.8);
-}
-
-
-
 
 .add-icon {
   font-size: 18px;
   margin-right: 8px;
 }
 
+/* Nueva clase para el contenedor de cantidad */
+.cantidad-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.cantidad-container .input-field {
+  width: 120px;
+  flex: none;
+}
+
+/* Botón para agregar a la lista */
+.add-to-list-button {
+  padding: 6px 12px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 12px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-to-list-button:hover {
+  background-color: #1976D2;
+}
+
+/* Estilos para la lista de medicamentos */
+.lista-medicamentos {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.lista-medicamentos h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.medicamentos-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.medicamentos-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.medicamentos-table th,
+.medicamentos-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.medicamentos-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.medicamentos-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Botón eliminar en la tabla */
+.btn-eliminar {
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.btn-eliminar:hover {
+  color: #c82333;
+}
+
 .laboratorios-list,
 .medicamentos-list {
-  max-height: 150px; /* Reducir la altura máxima */
+  max-height: 150px;
   overflow-y: auto;
-  margin-top: 10px; /* Reducir margen superior */
+  margin-top: 10px;
   border: 1px solid #e0e0e0;
   border-radius: 5px;
-  padding: 5px; /* Reducir padding */
+  padding: 5px;
   background-color: #fafafa;
   z-index: 10;
-  font-size: 13px; /* Reducir tamaño de fuente global para la lista */
+  font-size: 13px;
 }
 
 .laboratorio-item,
 .medicamento-item {
-  padding: 6px; /* Reducir padding */
+  padding: 6px;
   background-color: white;
-  margin-bottom: 5px; /* Reducir espacio entre elementos */
+  margin-bottom: 5px;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
 }
 
 .laboratorio-item:hover,
@@ -572,33 +680,36 @@ prevenirSalida(event) {
 
 .submit-button {
   width: 100%;
-  padding: 10px; /* Reducido de 15px */
+  padding: 10px;
   background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 14px; /* Reducido de 16px */
+  font-size: 14px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 15px;
 }
 
 .submit-button:hover {
-  background-color: #4CAF50;
+  background-color: #45a049;
   transform: translateY(-2px);
 }
 
-.finalizar-button {
-  margin-top: 20px;
+.submit-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
 }
 
 select {
   width: 100%;
-  padding: 5px; /* Reduced padding */
+  padding: 5px;
   border-radius: 5px;
   border: 1px solid #ddd;
   appearance: none;
-  font-size: 12px; /* Smaller font size */
-  height: 30px; /* Added fixed height to make select inputs shorter */
+  font-size: 12px;
+  height: 30px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M10.3 3.3L6 7.6 1.7 3.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l5 5c.4.4 1 .4 1.4 0l5-5c.4-.4.4-1 0-1.4s-1-.4-1.4 0z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
@@ -612,15 +723,15 @@ select:disabled {
 
 input[type="number"] {
   width: 100%;
-  padding: 5px; /* Reduced padding */
-  margin-top: 3px; /* Further reduced margin */
+  padding: 5px;
+  margin-top: 3px;
   border-radius: 5px;
   border: 1px solid #ddd;
-  font-size: 12px; /* Smaller font size */
-  height: 30px; /* Added fixed height to make number inputs shorter */
+  font-size: 12px;
+  height: 30px;
 }
 
-/* Scroll bar styling for list containers */
+/* Barra de desplazamiento */
 .laboratorios-list::-webkit-scrollbar,
 .medicamentos-list::-webkit-scrollbar {
   width: 8px;
@@ -640,5 +751,29 @@ input[type="number"] {
 .laboratorios-list::-webkit-scrollbar-thumb:hover,
 .medicamentos-list::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .container {
+    padding: 5px;
+  }
+  
+  .select-container {
+    flex-direction: column;
+  }
+  
+  .cantidad-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .cantidad-container .input-field {
+    width: 100%;
+  }
+  
+  .add-to-list-button {
+    margin-top: 5px;
+  }
 }
 </style>
