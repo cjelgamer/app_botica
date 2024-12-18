@@ -87,3 +87,197 @@ VALUES ('Salud Vital', '321987654', 'Av. La Salud 101, Trujillo', '4567890');
 INSERT INTO Laboratorio (Nombre, Telefono, Direccion, RUC)
 VALUES ('Laboratorios Santa Fe', '789456123', 'Av. Los Andes 202, Chiclayo', '5678901');
 
+
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Naproxeno', 'Antiinflamatorio y analgésico', 6.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Bismutol', 'Antidiarreico', 8.90, 0, 'Suspensión');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Dextrometorfano', 'Antitusivo', 12.50, 0, 'Jarabe');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Ketorolaco', 'Analgésico potente', 4.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Sildenafilo', 'Disfunción eréctil', 25.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Dimenhidrinato', 'Antimareo', 3.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Mentholatum', 'Descongestionante tópico', 5.50, 0, 'Ungüento');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Fluconazol', 'Antimicótico', 15.00, 0, 'Cápsulas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Ensure', 'Suplemento nutricional', 89.90, 0, 'Polvo');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Pediasure', 'Suplemento nutricional infantil', 95.00, 0, 'Polvo');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Electrolight', 'Rehidratante', 3.50, 0, 'Bebida');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Hidroclorotiazida', 'Diurético', 8.75, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Clotrimazol', 'Antimicótico tópico', 12.50, 0, 'Crema');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Multibióticos', 'Antibiótico tópico', 6.50, 0, 'Ungüento');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Mebendazol', 'Antiparasitario', 5.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Albendazol', 'Antiparasitario', 6.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Vitamina C', 'Suplemento vitamínico', 15.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Complejo B', 'Vitaminas del complejo B', 18.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Sulfato Ferroso', 'Suplemento de hierro', 7.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Doloflam', 'Antiinflamatorio', 2.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Panadol', 'Analgésico', 1.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Buscapina', 'Antiespasmódico', 3.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Nastizol', 'Antigripal', 2.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Apronax', 'Antiinflamatorio', 2.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Redex', 'Vitaminas y minerales', 1.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Gaseovet', 'Antiflatulento', 1.80, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Antalgina', 'Analgésico', 1.00, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Hepabionta', 'Protector hepático', 2.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Dolomax', 'Analgésico', 1.50, 0, 'Tabletas');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Kitadol', 'Analgésico', 1.20, 0, 'Tabletas');
+
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Piel Classic', 'Preservativo clásico', 3.00, 0, 'Preservativos');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Piel Ultra Sensible', 'Preservativo ultra delgado', 3.50, 0, 'Preservativos');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Durex Classic', 'Preservativo clásico', 4.50, 0, 'Preservativos');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Durex Sensitivo', 'Preservativo sensitivo', 5.00, 0, 'Preservativos');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Lubricante K-Y', 'Lubricante íntimo', 15.90, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Nosotras Normal', 'Toallas higiénicas', 4.50, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Nosotras Nocturna', 'Toallas higiénicas nocturnas', 5.50, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Always Ultrafina', 'Toallas higiénicas ultrafinas', 6.00, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Tampones OB', 'Tampones regulares', 12.90, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Old Spice Desodorante', 'Desodorante masculino', 12.50, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Rexona Clinical', 'Desodorante antitranspirante', 15.90, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Dove Original', 'Jabón hidratante', 3.50, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Protex', 'Jabón antibacterial', 3.00, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('H&S Anticaspa', 'Shampoo anticaspa', 18.90, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Pantene', 'Shampoo revitalizante', 16.90, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Oral-B Pro', 'Cepillo dental', 8.50, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Colgate Total', 'Pasta dental', 12.90, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Listerine', 'Enjuague bucal', 15.90, 0, 'Higiene');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Test Embarazo', 'Prueba de embarazo', 12.00, 0, 'Diagnóstico');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Alcohol 96°', 'Alcohol medicinal', 5.00, 0, 'Antiséptico');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Agua Oxigenada', 'Antiséptico', 3.50, 0, 'Antiséptico');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Vendas Elásticas', 'Venda de soporte', 6.50, 0, 'Material');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Curitas', 'Bandas adhesivas', 0.50, 0, 'Material');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Algodón 50g', 'Algodón hidrófilo', 4.50, 0, 'Material');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Pañales Huggies', 'Pañales talla G', 52.90, 0, 'Bebé');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Pañales Pampers', 'Pañales talla M', 49.90, 0, 'Bebé');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Similac 1', 'Fórmula infantil 0-6m', 98.90, 0, 'Bebé');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Enfagrow', 'Fórmula infantil 2+ años', 95.90, 0, 'Bebé');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Baby Oil Johnson', 'Aceite para bebé', 15.90, 0, 'Bebé');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Dermocapillus', 'Champú anticaída', 45.90, 0, 'Cosmético');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Minoxidil 5%', 'Tratamiento anticaída', 55.00, 0, 'Cosmético');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Eucerin pH5', 'Crema hidratante', 65.90, 0, 'Cosmético');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('La Roche Posay', 'Protector solar FPS50', 89.90, 0, 'Cosmético');
+
+INSERT INTO Medicamento (Nombre, Descripcion, Precio, Stock, Tipo)
+VALUES ('Nivea Q10', 'Crema antiarrugas', 45.90, 0, 'Cosmético');
